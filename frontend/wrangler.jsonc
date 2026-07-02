@@ -1,7 +1,7 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"main": ".open-next/worker.js",
-	"name": "ayaan-fashion-frontend",
+	"name": "ayaanfashion",
 	"compatibility_date": "2026-07-02",
 	"compatibility_flags": [
 		"nodejs_compat",
@@ -16,10 +16,15 @@
 			// Self-reference service binding, the service name must match the worker name
 			// see https://opennext.js.org/cloudflare/caching
 			"binding": "WORKER_SELF_REFERENCE",
-			"service": "ayaan-fashion-frontend"
+			"service": "ayaanfashion"
 		}
 	],
 	"workers_dev": true,
+	"vars": {
+		"NEXT_PUBLIC_API_URL": "https://ayaanfashion2.onrender.com/api",
+		"NEXT_PUBLIC_SITE_URL": "https://ayaanfashion.ayaanfashion.workers.dev",
+		"NEXT_PUBLIC_UPLOADS_URL": "https://ayaanfashion2.onrender.com/uploads"
+	},
 	"images": {
 		// Enable image optimization
 		// see https://opennext.js.org/cloudflare/howtos/image
