@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://ayaanfashion.com/sitemap.xml

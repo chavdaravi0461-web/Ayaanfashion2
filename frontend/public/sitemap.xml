@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://ayaanfashion.com</loc><priority>1.0</priority></url>
+  <url><loc>https://ayaanfashion.com/shop</loc><priority>0.9</priority></url>
+  <url><loc>https://ayaanfashion.com/categories</loc><priority>0.8</priority></url>
+  <url><loc>https://ayaanfashion.com/new-arrivals</loc><priority>0.9</priority></url>
+  <url><loc>https://ayaanfashion.com/best-sellers</loc><priority>0.9</priority></url>
+  <url><loc>https://ayaanfashion.com/about</loc><priority>0.5</priority></url>
+  <url><loc>https://ayaanfashion.com/contact</loc><priority>0.6</priority></url>
+  <url><loc>https://ayaanfashion.com/order-tracking</loc><priority>0.5</priority></url>
+  <url><loc>https://ayaanfashion.com/privacy</loc><priority>0.3</priority></url>
+  <url><loc>https://ayaanfashion.com/terms</loc><priority>0.3</priority></url>
+</urlset>
