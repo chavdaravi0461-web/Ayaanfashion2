@@ -42,6 +42,9 @@ prisma/*.sqlite
 # Docker
 .docker/
 
+# Backup
+*.bak
+
 # Misc
 *.pem
 .cache/
