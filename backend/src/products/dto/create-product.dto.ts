@@ -31,6 +31,7 @@ export class CreateProductDto {
   @ApiProperty() @IsString() categoryId: string;
   @ApiProperty({ required: false }) @IsOptional() @IsString() seoTitle?: string;
   @ApiProperty({ required: false }) @IsOptional() @IsString() seoDescription?: string;
+  @ApiProperty({ required: false }) @IsOptional() @IsString() slug?: string;
   @ApiProperty({ required: false }) @IsOptional() @IsString() tags?: string;
   @ApiProperty({ required: false }) @IsOptional() @IsArray() images?: ImageDto[];
   @ApiProperty({ required: false }) @IsOptional() @IsArray() variants?: VariantDto[];
