@@ -59,7 +59,7 @@ export function AdminSidebar() {
           </div>
           {!collapsed && (
             <div>
-              <h2 className="font-display font-bold text-sm">Ayaan Fashion</h2>
+              <h2 className="font-display font-bold text-sm">Ayaan F&W</h2>
               <p className="text-xs text-gray-500">Admin Panel</p>
             </div>
           )}
@@ -172,7 +172,7 @@ export function AdminSidebar() {
         <button onClick={() => setMobileOpen(true)} className="p-1 rounded-lg hover:bg-gray-100">
           <Menu className="w-5 h-5" />
         </button>
-        <h2 className="font-display font-bold text-sm">Ayaan Fashion Admin</h2>
+        <h2 className="font-display font-bold text-sm">Ayaan F&W Admin</h2>
         <div className="w-5" />
       </div>
     </>

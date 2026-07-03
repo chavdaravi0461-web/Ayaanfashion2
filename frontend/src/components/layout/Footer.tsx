@@ -132,7 +132,7 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="py-6 border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm text-gray-500">
-            &copy; {new Date().getFullYear()} Ayaan Fashion. All rights reserved.
+            &copy; {new Date().getFullYear()} Ayaan Footwear &amp; Watches. All rights reserved.
           </p>
           <div className="flex gap-6 text-sm">
             <Link href="/privacy" className="text-gray-500 hover:text-gray-300">Privacy Policy</Link>

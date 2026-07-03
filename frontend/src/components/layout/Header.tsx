@@ -89,7 +89,7 @@ export function Header() {
             <Link href="/" className="flex-shrink-0">
               <h1 className="font-display text-2xl lg:text-3xl font-bold tracking-tight">
                 <span className="text-primary-600">Ayaan</span>{' '}
-                <span className="text-gray-900">Fashion</span>
+                <span className="text-gray-900">Footwear &amp; Watches</span>
               </h1>
             </Link>
 
