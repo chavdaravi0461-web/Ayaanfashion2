@@ -18,22 +18,22 @@ const playfair = Playfair_Display({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Ayaan Fashion - Premium Fashion Destination',
-    template: '%s | Ayaan Fashion',
+    default: 'Ayaan Footwear & Watches — Premium Shoes & Timepieces',
+    template: '%s | Ayaan Footwear & Watches',
   },
-  description: 'Discover premium fashion at Ayaan Fashion. Shop the latest trends in traditional wear, western wear, accessories and more.',
-  keywords: 'fashion, clothing, traditional wear, western wear, accessories, online shopping',
+  description: 'Discover premium shoes and watches at Ayaan Footwear & Watches. Shop sneakers, formal shoes, luxury watches, smartwatches and more.',
+  keywords: 'shoes, footwear, watches, luxury watches, smart watches, sneakers, online shopping, Ayaan',
   openGraph: {
     type: 'website',
     locale: 'en_IN',
-    siteName: 'Ayaan Fashion',
-    title: 'Ayaan Fashion - Premium Fashion Destination',
-    description: 'Discover premium fashion at Ayaan Fashion.',
+    siteName: 'Ayaan Footwear & Watches',
+    title: 'Ayaan Footwear & Watches — Premium Shoes & Timepieces',
+    description: 'Premium shoes and watches curated for style and performance.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Ayaan Fashion',
-    description: 'Discover premium fashion at Ayaan Fashion.',
+    title: 'Ayaan Footwear & Watches',
+    description: 'Premium shoes and watches curated for style and performance.',
   },
   robots: {
     index: true,

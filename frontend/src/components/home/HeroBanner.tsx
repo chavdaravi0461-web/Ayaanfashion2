@@ -22,9 +22,9 @@ export function HeroBanner() {
   }, []);
 
   const slides = banners.length > 0 ? banners : [
-    { title: 'Summer Collection 2024', subtitle: 'Discover the latest trends in fashion', image: '', link: '/shop', linkText: 'Shop Now' },
-    { title: 'Traditional Elegance', subtitle: 'Handcrafted with love for every occasion', image: '', link: '/shop?category=traditional-wear', linkText: 'Explore' },
-    { title: 'New Arrivals', subtitle: 'Be the first to wear the newest styles', image: '', link: '/new-arrivals', linkText: 'View New Arrivals' },
+    { title: 'Step Into Style', subtitle: 'Premium footwear for every occasion — from sneakers to formal', image: '', link: '/shop?category=mens-footwear', linkText: 'Shop Footwear' },
+    { title: 'Time That Defines You', subtitle: 'Luxury watches and smart timepieces for the modern individual', image: '', link: '/shop?category=luxury-watches', linkText: 'Explore Watches' },
+    { title: 'New Arrivals', subtitle: 'Be the first to wear the newest styles in shoes and watches', image: '', link: '/new-arrivals', linkText: 'View New Arrivals' },
   ];
 
   return (

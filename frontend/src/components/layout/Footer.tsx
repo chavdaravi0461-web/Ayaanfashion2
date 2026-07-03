@@ -55,11 +55,11 @@ export function Footer() {
           {/* Brand */}
           <div>
             <h3 className="font-display text-2xl font-bold text-white mb-4">
-              <span className="text-primary-500">Ayaan</span> Fashion
+              <span className="text-primary-500">Ayaan</span> Footwear &amp; Watches
             </h3>
             <p className="text-sm text-gray-400 mb-6 leading-relaxed">
-              Your premium destination for fashion that blends tradition with modernity. 
-              Discover curated collections that define your style.
+              Premium shoes and watches curated for style and performance. 
+              Discover footwear and timepieces that define you.
             </p>
             <div className="flex gap-3">
               <a href="#" className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-primary-600 transition-colors" aria-label="Instagram">

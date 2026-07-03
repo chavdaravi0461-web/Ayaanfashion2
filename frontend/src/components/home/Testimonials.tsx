@@ -6,10 +6,10 @@ import { Autoplay } from 'swiper/modules';
 import 'swiper/css';
 
 const testimonials = [
-  { name: 'Priya Sharma', text: 'Amazing quality! The fabric is so comfortable and the fit is perfect. Highly recommend Ayaan Fashion for traditional wear.', rating: 5, location: 'Mumbai' },
-  { name: 'Rahul Verma', text: 'Fast delivery and excellent customer service. The product exceeded my expectations. Will definitely shop again.', rating: 5, location: 'Delhi' },
-  { name: 'Ananya Patel', text: 'Beautiful collection! I found exactly what I was looking for. The prices are very reasonable for the quality.', rating: 5, location: 'Bangalore' },
-  { name: 'Vikram Singh', text: 'My go-to fashion store now. Great variety, amazing quality, and the packaging was premium. Love it!', rating: 5, location: 'Pune' },
+  { name: 'Priya Sharma', text: 'Amazing quality sneakers! The comfort is unreal and the fit is perfect. Highly recommend Ayaan for footwear.', rating: 5, location: 'Mumbai' },
+  { name: 'Rahul Verma', text: 'Bought a luxury watch — exceptional collection and fast delivery. The watch exceeded my expectations.', rating: 5, location: 'Delhi' },
+  { name: 'Ananya Patel', text: 'Beautiful collection of shoes and watches! Found exactly what I was looking for at great prices.', rating: 5, location: 'Bangalore' },
+  { name: 'Vikram Singh', text: 'My go-to store for premium watches now. Great variety, amazing quality, and premium packaging. Love it!', rating: 5, location: 'Pune' },
 ];
 
 export function Testimonials() {

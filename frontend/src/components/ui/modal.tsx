@@ -22,12 +22,12 @@ export function Modal({ isOpen, onClose, title, children, size = 'md', className
   const previousActiveElement = useRef<HTMLElement | null>(null);
   const titleId = title ? 'modal-title' : undefined;
 
-  const handleEscapeRef = useRef<(e: KeyboardEvent) => void>();
+  const handleEscapeRef = useRef<(e: KeyboardEvent) => void>(() => {});
   handleEscapeRef.current = (e: KeyboardEvent) => {
     if (e.key === 'Escape') onClose();
   };
 
-  const trapFocusRef = useRef<(e: KeyboardEvent) => void>();
+  const trapFocusRef = useRef<(e: KeyboardEvent) => void>(() => {});
   trapFocusRef.current = (e: KeyboardEvent) => {
     if (e.key !== 'Tab' || !modalRef.current) return;
     const focusable = modalRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
