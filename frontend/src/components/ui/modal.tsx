@@ -22,14 +22,13 @@ export function Modal({ isOpen, onClose, title, children, size = 'md', className
   const previousActiveElement = useRef<HTMLElement | null>(null);
   const titleId = title ? 'modal-title' : undefined;
 
-  const handleEscape = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    },
-    [onClose]
-  );
+  const handleEscapeRef = useRef<(e: KeyboardEvent) => void>();
+  handleEscapeRef.current = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') onClose();
+  };
 
-  const trapFocus = useCallback((e: KeyboardEvent) => {
+  const trapFocusRef = useRef<(e: KeyboardEvent) => void>();
+  trapFocusRef.current = (e: KeyboardEvent) => {
     if (e.key !== 'Tab' || !modalRef.current) return;
     const focusable = modalRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
     if (focusable.length === 0) return;
@@ -46,30 +45,31 @@ export function Modal({ isOpen, onClose, title, children, size = 'md', className
         first.focus();
       }
     }
-  }, []);
+  };
 
   useEffect(() => {
-    if (isOpen) {
-      previousActiveElement.current = document.activeElement as HTMLElement;
-      document.addEventListener('keydown', handleEscape);
-      document.addEventListener('keydown', trapFocus);
-      document.body.style.overflow = 'hidden';
-      const timer = requestAnimationFrame(() => {
-        if (modalRef.current) {
-          const first = modalRef.current.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
-          if (first) first.focus();
-        }
-      });
-      return () => {
-        cancelAnimationFrame(timer);
-        document.removeEventListener('keydown', handleEscape);
-        document.removeEventListener('keydown', trapFocus);
-        document.body.style.overflow = 'unset';
-        previousActiveElement.current?.focus();
-        previousActiveElement.current = null;
-      };
-    }
-  }, [isOpen, handleEscape, trapFocus]);
+    if (!isOpen) return;
+    previousActiveElement.current = document.activeElement as HTMLElement;
+    const handleEscape = (e: KeyboardEvent) => handleEscapeRef.current?.(e);
+    const trapFocus = (e: KeyboardEvent) => trapFocusRef.current?.(e);
+    document.addEventListener('keydown', handleEscape);
+    document.addEventListener('keydown', trapFocus);
+    document.body.style.overflow = 'hidden';
+    const timer = requestAnimationFrame(() => {
+      if (modalRef.current) {
+        const first = modalRef.current.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
+        if (first) first.focus();
+      }
+    });
+    return () => {
+      cancelAnimationFrame(timer);
+      document.removeEventListener('keydown', handleEscape);
+      document.removeEventListener('keydown', trapFocus);
+      document.body.style.overflow = 'unset';
+      previousActiveElement.current?.focus();
+      previousActiveElement.current = null;
+    };
+  }, [isOpen]);
 
   const sizes = {
     sm: 'max-w-sm',
