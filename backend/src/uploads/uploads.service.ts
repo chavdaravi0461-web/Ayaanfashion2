@@ -23,12 +23,12 @@ export class UploadsService {
     }
 
     const ext = path.extname(file.originalname).toLowerCase();
-    const allowedExts = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
+    const allowedExts = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp', '.tiff', '.tif', '.avif', '.heic', '.heif', '.ico'];
     if (!allowedExts.includes(ext)) {
-      throw new BadRequestException('Invalid file type. Allowed: jpg, jpeg, png, webp, gif');
+      throw new BadRequestException('Invalid file type. Allowed: all image formats except SVG');
     }
 
-    const sanitizedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    const sanitizedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/bmp', 'image/tiff', 'image/avif', 'image/heic', 'image/heif', 'image/x-icon', 'image/vnd.microsoft.icon'];
     if (!sanitizedMimeTypes.includes(file.mimetype)) {
       throw new BadRequestException('Invalid file content type');
     }
