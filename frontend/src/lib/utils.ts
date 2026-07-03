@@ -43,8 +43,11 @@ export function truncate(str: string, length: number): string {
 export function getImageUrl(path: string): string {
   if (!path) return '/placeholder.svg';
   if (path.startsWith('http')) return path;
-  const baseUrl = process.env.NEXT_PUBLIC_UPLOADS_URL || 'http://localhost:4000/uploads';
-  return `${baseUrl}/${path.replace(/^\//, '')}`;
+  if (path.startsWith('/uploads/')) {
+    const baseUrl = process.env.NEXT_PUBLIC_UPLOADS_URL || 'http://localhost:4000/uploads';
+    return `${baseUrl}/${path.replace(/^\/uploads\//, '')}`;
+  }
+  return path;
 }
 
 export function getStatusColor(status: string): string {

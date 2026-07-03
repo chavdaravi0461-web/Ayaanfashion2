@@ -17,7 +17,10 @@ async function getProduct(slug: string) {
 function getImageUrl(path: string): string {
   if (!path) return `${SITE_URL}/placeholder.svg`;
   if (path.startsWith('http')) return path;
-  return `${UPLOADS_URL}/${path.replace(/^\//, '')}`;
+  if (path.startsWith('/uploads/')) {
+    return `${UPLOADS_URL}/${path.replace(/^\/uploads\//, '')}`;
+  }
+  return path.startsWith('/') ? `${SITE_URL}${path}` : path;
 }
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {

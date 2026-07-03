@@ -12,7 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ErrorState } from '@/components/ui/error-state';
 import { api } from '@/lib/api';
-import { cn } from '@/lib/utils';
+import { cn, getImageUrl } from '@/lib/utils';
 import { Plus, Edit2, Trash2, FolderTree, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -138,10 +138,7 @@ export default function AdminCategoriesPage() {
     .map((c) => ({ value: c.id, label: c.name }));
 
   const getCategoryImage = (cat: any) => {
-    if (cat.imageUrl) {
-      const src = cat.imageUrl.startsWith('http') ? cat.imageUrl : `${process.env.NEXT_PUBLIC_UPLOADS_URL || 'http://localhost:4000/uploads'}/${cat.imageUrl.replace(/^\//, '')}`;
-      return src;
-    }
+    if (cat.imageUrl) return getImageUrl(cat.imageUrl);
     return null;
   };
 

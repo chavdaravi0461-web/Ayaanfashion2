@@ -43,7 +43,7 @@ export class UploadsService {
       .toFile(filepath);
 
     return {
-      url: `/${filename}`,
+      url: `/uploads/${filename}`,
       filename,
       originalName: file.originalname,
       size: file.size,
