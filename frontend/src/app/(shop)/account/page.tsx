@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { PageLoader } from '@/components/ui/loading';
 import { ErrorState } from '@/components/ui/error-state';
 import { api } from '@/lib/api';
+import { getImageUrl } from '@/lib/utils';
 import { User, Package, MapPin, Heart, LogOut, ShoppingBag } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
@@ -189,7 +190,7 @@ export default function AccountPage() {
                       {wishlist.map((item: any) => (
                         <Link key={item.id} href={`/product/${item.product?.slug}`} className="group border border-gray-200 rounded-xl overflow-hidden hover:shadow-md transition-shadow">
                           <div className="aspect-square bg-gray-50">
-                            <img src={item.product?.images?.[0]?.url || '/placeholder.svg'} alt={item.product?.name} className="w-full h-full object-cover" />
+                            <img src={getImageUrl(item.product?.images?.[0]?.url || '') || '/placeholder.svg'} alt={item.product?.name} className="w-full h-full object-cover" />
                           </div>
                           <div className="p-3">
                             <p className="text-sm font-medium text-gray-900 truncate">{item.product?.name}</p>
