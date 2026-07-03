@@ -166,7 +166,7 @@ export class ProductsService {
   }
 
   async create(dto: CreateProductDto) {
-    let slug = slugify(dto.name, { lower: true, strict: true });
+    let slug = dto.slug || slugify(dto.name, { lower: true, strict: true });
     const existingSlug = await this.prisma.product.findUnique({ where: { slug } });
     if (existingSlug) {
       slug = `${slug}-${Date.now()}`;
