@@ -25,6 +25,7 @@ export class CreateProductDto {
   @ApiProperty({ required: false }) @IsOptional() @IsNumber() @Type(() => Number) discount?: number;
   @ApiProperty() @IsString() sku: string;
   @ApiProperty() @IsNumber() @Type(() => Number) stock: number;
+  @ApiProperty({ required: false }) @IsOptional() @IsBoolean() @Type(() => Boolean) isActive?: boolean;
   @ApiProperty({ required: false }) @IsOptional() @IsBoolean() @Type(() => Boolean) isFeatured?: boolean;
   @ApiProperty({ required: false }) @IsOptional() @IsBoolean() @Type(() => Boolean) isNewArrival?: boolean;
   @ApiProperty({ required: false }) @IsOptional() @IsBoolean() @Type(() => Boolean) isBestSeller?: boolean;
