@@ -2,10 +2,18 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
 
 interface FetchOptions extends RequestInit {
   params?: Record<string, any>;
+  skipCache?: boolean;
+  signal?: AbortSignal;
 }
 
 class ApiClient {
   private baseUrl: string;
+  private cache = new Map<string, { expiresAt: number; promise: Promise<any> }>();
+  private pendingRequests = new Map<string, Promise<any>>();
+  private readonly CACHE_TTL = {
+    static: 5 * 60 * 1000,
+    dynamic: 30 * 1000,
+  };
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
@@ -22,8 +30,15 @@ class ApiClient {
     return localStorage.getItem('admin_token') || localStorage.getItem('customer_token');
   }
 
+  private getCacheTTL(endpoint: string): number {
+    if (endpoint.includes('/featured') || endpoint.includes('/new-arrivals') || endpoint.includes('/best-sellers') || endpoint.includes('/categories')) {
+      return this.CACHE_TTL.static;
+    }
+    return this.CACHE_TTL.dynamic;
+  }
+
   private async request<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
-    const { params, ...fetchOptions } = options;
+    const { params, skipCache, signal, ...fetchOptions } = options;
     let url = `${this.baseUrl}${endpoint}`;
 
     if (params) {
@@ -35,6 +50,21 @@ class ApiClient {
       });
       const qs = searchParams.toString();
       if (qs) url += `?${qs}`;
+    }
+
+    const isGetRequest = !fetchOptions.method || fetchOptions.method === 'GET';
+    const cacheKey = `GET:${url}`;
+
+    if (isGetRequest && !skipCache) {
+      const cached = this.cache.get(cacheKey);
+      if (cached && cached.expiresAt > Date.now()) {
+        return cached.promise as Promise<T>;
+      }
+
+      const pending = this.pendingRequests.get(cacheKey);
+      if (pending) {
+        return pending as Promise<T>;
+      }
     }
 
     const token = this.getToken();
@@ -52,33 +82,71 @@ class ApiClient {
       delete headers['Content-Type'];
     }
 
-    let response: Response;
-    try {
-      response = await fetch(url, {
-        ...fetchOptions,
-        headers,
+    const requestPromise = (async () => {
+      let response: Response;
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+      try {
+        response = await fetch(url, {
+          ...fetchOptions,
+          headers,
+          signal: signal || controller.signal,
+        });
+      } catch (err: any) {
+        if (err.name === 'AbortError') {
+          throw new Error('Request timed out. Please check your connection.');
+        }
+        throw new Error(`Network error: Unable to reach the server. (${err.message})`);
+      } finally {
+        clearTimeout(timeoutId);
+      }
+
+      if (response.status === 401) {
+        this.clearTokens();
+        const body = await response.text();
+        throw new Error(body ? JSON.parse(body).message || 'Session expired' : 'Session expired. Please login again.');
+      }
+
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || 'API request failed');
+        }
+
+        return data;
+      }
+
+      const text = await response.text();
+      if (!response.ok) {
+        throw new Error(text || 'API request failed');
+      }
+
+      try {
+        return JSON.parse(text);
+      } catch {
+        return text;
+      }
+    })();
+
+    if (isGetRequest && !skipCache) {
+      this.pendingRequests.set(cacheKey, requestPromise);
+      this.cache.set(cacheKey, {
+        expiresAt: Date.now() + this.getCacheTTL(endpoint),
+        promise: requestPromise,
       });
-    } catch (err: any) {
-      throw new Error(`Network error: Unable to reach the server. Make sure the backend is running on port 4000. (${err.message})`);
+      requestPromise.finally(() => {
+        this.pendingRequests.delete(cacheKey);
+      });
     }
 
-    if (response.status === 401) {
-      this.clearTokens();
-      const body = await response.text();
-      throw new Error(body ? JSON.parse(body).message || 'Session expired' : 'Session expired. Please login again.');
-    }
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || 'API request failed');
-    }
-
-    return data;
+    return requestPromise as Promise<T>;
   }
 
-  get<T>(endpoint: string, params?: Record<string, any>) {
-    return this.request<T>(endpoint, { method: 'GET', params });
+  get<T>(endpoint: string, params?: Record<string, any>, skipCache?: boolean) {
+    return this.request<T>(endpoint, { method: 'GET', params, skipCache });
   }
 
   post<T>(endpoint: string, body?: any) {
@@ -95,6 +163,18 @@ class ApiClient {
 
   delete<T>(endpoint: string) {
     return this.request<T>(endpoint, { method: 'DELETE' });
+  }
+
+  invalidateCache(pattern?: string): void {
+    if (!pattern) {
+      this.cache.clear();
+      return;
+    }
+    for (const key of this.cache.keys()) {
+      if (key.includes(pattern)) {
+        this.cache.delete(key);
+      }
+    }
   }
 
   // Auth

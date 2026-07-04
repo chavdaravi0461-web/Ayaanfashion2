@@ -315,11 +315,22 @@ export default function AdminProductsPage() {
   };
 
   const handleSave = async () => {
-    if (!form.name || !form.sku) {
-      toast.error('Product name and SKU are required');
+    if (!form.name.trim()) {
+      toast.error('Product name is required');
       return;
     }
+    if (!form.sku.trim()) {
+      toast.error('SKU is required');
+      return;
+    }
+    if (!form.categoryId) {
+      toast.error('Please select a category');
+      return;
+    }
+
     setSaving(true);
+    const loadingToast = toast.loading(editingProduct ? 'Updating product...' : 'Creating product...');
+
     try {
       const isCreating = !editingProduct;
       const numericMrp = parseFloat(form.mrp) || 0;
@@ -327,6 +338,8 @@ export default function AdminProductsPage() {
 
       const baseData: Record<string, any> = {
         ...form,
+        name: form.name.trim(),
+        sku: form.sku.trim(),
         mrp: numericMrp,
         salePrice: numericSalePrice,
         stock: parseInt(form.stock) || 0,
@@ -346,28 +359,39 @@ export default function AdminProductsPage() {
         const res = await api.createProduct(baseData);
         if (!res.success) throw new Error('Failed to create product');
 
-        if (galleryImages.length > 0) {
-          const newFiles = galleryImages.filter((img) => img.file).map((img) => img.file!);
-          if (newFiles.length > 0) {
-            const uploadRes = await api.uploadMultiple(newFiles);
-            if (uploadRes.success) {
-              const uploadedUrls = uploadRes.data.files.map((f: any) => f.url);
-              const existingUrls = galleryImages.filter((img) => img.url).map((img) => img.url!);
-              const allUrls = [...existingUrls, ...uploadedUrls];
-              await api.updateProduct(res.data.id, {
-                images: allUrls.map((url, i) => ({ url, isPrimary: i === 0 })),
-              });
+        const newFiles = galleryImages.filter((img) => img.file).map((img) => img.file!);
+        const existingUrls = galleryImages.filter((img) => img.url).map((img) => img.url!);
+
+        if (newFiles.length > 0) {
+          void (async () => {
+            try {
+              const uploadRes = await api.uploadMultiple(newFiles);
+              if (uploadRes.success) {
+                const uploadedUrls = uploadRes.data.files.map((f: any) => f.url);
+                const allUrls = [...existingUrls, ...uploadedUrls];
+                if (allUrls.length > 0) {
+                  await api.updateProduct(res.data.id, {
+                    images: allUrls.map((url, i) => ({ url, isPrimary: i === 0 })),
+                  });
+                }
+              }
+            } catch (uploadError) {
+              console.error('Image upload failed after product creation:', uploadError);
             }
-          } else {
-            const existingUrls = galleryImages.filter((img) => img.url).map((img) => img.url!);
-            if (existingUrls.length > 0) {
+          })();
+        } else if (existingUrls.length > 0) {
+          void (async () => {
+            try {
               await api.updateProduct(res.data.id, {
                 images: existingUrls.map((url, i) => ({ url, isPrimary: i === 0 })),
               });
+            } catch (uploadError) {
+              console.error('Image attach failed after product creation:', uploadError);
             }
-          }
+          })();
         }
-        toast.success('Product created');
+
+        toast.success('Product created successfully', { id: loadingToast });
       } else {
         const res = await api.updateProduct(editingProduct.id, baseData);
         if (!res.success) throw new Error('Failed to update product');
@@ -389,14 +413,14 @@ export default function AdminProductsPage() {
           });
         }
 
-        toast.success('Product updated');
+        toast.success('Product updated successfully', { id: loadingToast });
       }
 
       setModalOpen(false);
       setSelectedIds(new Set());
-      fetchProducts();
+      await fetchProducts();
     } catch (err: any) {
-      toast.error(err.message || 'Failed to save product');
+      toast.error(err.message || 'Failed to save product', { id: loadingToast });
     } finally {
       setSaving(false);
     }
@@ -661,14 +685,19 @@ export default function AdminProductsPage() {
   return (
     <>
       <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Products</h1>
-            <p className="text-sm text-gray-500 mt-0.5">{totalItems} total products</p>
+        <div className="rounded-2xl border border-gray-200 bg-gradient-to-r from-white via-primary-50/40 to-white p-5 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <div className="inline-flex items-center rounded-full bg-primary-100 px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-primary-700">
+                Premium Admin
+              </div>
+              <h1 className="mt-2 text-2xl font-bold text-gray-900">Products</h1>
+              <p className="mt-1 text-sm text-gray-500">{totalItems} total products • Fast creation with instant image handling</p>
+            </div>
+            <Button onClick={openCreate} className="shadow-sm">
+              <Plus className="w-4 h-4 mr-2" /> Add Product
+            </Button>
           </div>
-          <Button onClick={openCreate}>
-            <Plus className="w-4 h-4 mr-2" /> Add Product
-          </Button>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3 sm:items-center">

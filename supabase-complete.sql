@@ -523,7 +523,7 @@ INSERT INTO "Setting" (key, value) VALUES
   ('site_description', 'Premium fashion destination for traditional and modern wear'),
   ('site_email', 'bhojanikomail@gmail.com'),
   ('site_phone', '+91-9876543210'),
-  ('site_address', '123 Fashion Street, Mumbai - 400001'),
+  ('site_address', 'Shop no 06, Behman Arcade, opp. Bilal Hospital, Kausa, Mumbra, Thane, Maharashtra 400612'),
   ('shipping_cost', '50'),
   ('free_shipping_min', '999'),
   ('tax_percentage', '5'),

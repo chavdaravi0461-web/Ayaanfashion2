@@ -53,11 +53,8 @@ export class UploadsService {
 
   async uploadMultiple(files: Express.Multer.File[]) {
     if (!files || files.length === 0) throw new BadRequestException('No files provided');
-    const results = [];
-    for (const file of files) {
-      const result = await this.uploadFile(file);
-      results.push(result);
-    }
+
+    const results = await Promise.all(files.map((file) => this.uploadFile(file)));
     return { files: results };
   }
 }

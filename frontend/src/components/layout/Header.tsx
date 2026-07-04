@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Menu, X, Search, ShoppingBag, Heart, User, ChevronDown, Sun, Moon } from 'lucide-react';
@@ -23,6 +23,7 @@ export function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [categories, setCategories] = useState<any[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
   const [showCatDropdown, setShowCatDropdown] = useState(false);
   const [dark, setDark] = useState(false);
   const pathname = usePathname();
@@ -39,11 +40,18 @@ export function Header() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  useEffect(() => {
-    api.getCategories().then((res: any) => {
+  const loadCategories = useCallback(async () => {
+    if (categories.length > 0 || categoriesLoading) return;
+    setCategoriesLoading(true);
+    try {
+      const res = await api.getCategories();
       if (res.success) setCategories(res.data);
-    }).catch(() => {});
-  }, []);
+    } catch {
+      // Ignore category fetch failures to keep navigation responsive.
+    } finally {
+      setCategoriesLoading(false);
+    }
+  }, [categories.length, categoriesLoading]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,7 +75,7 @@ export function Header() {
             <div className="flex items-center gap-4">
               <span>Track Order</span>
               <span>|</span>
-              <span>hello@ayaanfashion.com</span>
+              <span>komailbhojani@gmail.com</span>
             </div>
           </div>
         </div>
@@ -111,7 +119,10 @@ export function Header() {
               ))}
               <div
                 className="relative"
-                onMouseEnter={() => setShowCatDropdown(true)}
+                onMouseEnter={() => {
+                  setShowCatDropdown(true);
+                  void loadCategories();
+                }}
                 onMouseLeave={() => setShowCatDropdown(false)}
               >
                 <button className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary-600 rounded-lg hover:bg-gray-50">

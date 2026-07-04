@@ -38,6 +38,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
         method: request.method,
         statusCode: status,
         message: errorResponse.message,
+        ip: request.ip,
+        userAgent: request.get('user-agent'),
       }),
       exception instanceof Error ? exception.stack : undefined,
     );

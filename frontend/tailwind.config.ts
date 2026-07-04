@@ -61,6 +61,14 @@ const config: Config = {
           '100%': { transform: 'scale(1)', opacity: '1' },
         },
       },
+      transitionDuration: {
+        '250': '250ms',
+      },
+      willChange: {
+        'auto': 'auto',
+        'transform': 'transform',
+        'opacity': 'opacity',
+      },
     },
   },
   plugins: [],

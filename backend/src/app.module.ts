@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { ScheduleModule } from '@nestjs/schedule';
 import { join } from 'path';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
@@ -16,15 +17,26 @@ import { UploadsModule } from './uploads/uploads.module';
 import { WishlistModule } from './wishlist/wishlist.module';
 import { AddressesModule } from './addresses/addresses.module';
 import { HealthModule } from './health/health.module';
+import { SecurityModule } from './security/security.module';
+import { TwoFactorModule } from './two-factor/two-factor.module';
+import { EmailModule } from './email/email.module';
+import { SecurityMonitoringService } from './security/security-monitoring.service';
 import { RolesGuard } from './common/guards/roles.guard';
 
 @Module({
   imports: [
-    ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
+    ScheduleModule.forRoot(),
+    ThrottlerModule.forRoot([
+      { ttl: 60000, limit: 100 },
+      { ttl: 1000, limit: 20 },
+    ]),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads'),
       serveRoot: '/uploads',
     }),
+    EmailModule,
+    SecurityModule,
+    TwoFactorModule,
     PrismaModule,
     AuthModule,
     ProductsModule,
@@ -42,6 +54,7 @@ import { RolesGuard } from './common/guards/roles.guard';
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     RolesGuard,
+    SecurityMonitoringService,
   ],
 })
 export class AppModule {}

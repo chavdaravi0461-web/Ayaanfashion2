@@ -115,7 +115,7 @@ export function Footer() {
             <ul className="space-y-4">
               <li className="flex items-start gap-3">
                 <MapPin className="w-4 h-4 mt-0.5 text-primary-500 flex-shrink-0" />
-                <span className="text-sm">123 Fashion Street, Mumbai - 400001</span>
+                <span className="text-sm">Shop no 06, Behman Arcade, opp. Bilal Hospital, Kausa, Mumbra, Thane, Maharashtra 400612</span>
               </li>
               <li className="flex items-center gap-3">
                 <Phone className="w-4 h-4 text-primary-500 flex-shrink-0" />

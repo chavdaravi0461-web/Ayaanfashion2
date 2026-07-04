@@ -166,34 +166,49 @@ export class ProductsService {
   }
 
   async create(dto: CreateProductDto) {
-    let slug = dto.slug || slugify(dto.name, { lower: true, strict: true });
+    const name = dto.name?.trim();
+    const sku = dto.sku?.trim();
+    const categoryId = dto.categoryId?.trim();
+
+    if (!name) throw new BadRequestException('Product name is required');
+    if (!sku) throw new BadRequestException('SKU is required');
+    if (!categoryId) throw new BadRequestException('Please select a category');
+
+    const category = await this.prisma.category.findUnique({ where: { id: categoryId } });
+    if (!category) throw new BadRequestException('Selected category is invalid');
+
+    const baseSlug = (dto.slug || slugify(name, { lower: true, strict: true })).trim() || `product-${Date.now()}`;
+    let slug = baseSlug;
     const existingSlug = await this.prisma.product.findUnique({ where: { slug } });
     if (existingSlug) {
       slug = `${slug}-${Date.now()}`;
     }
 
-    const existingSku = await this.prisma.product.findUnique({ where: { sku: dto.sku } });
+    const existingSku = await this.prisma.product.findUnique({ where: { sku } });
     if (existingSku) throw new ConflictException('SKU already exists');
 
-    const discount = dto.discount ?? Math.round(((dto.mrp - dto.salePrice) / dto.mrp) * 100);
+    const mrp = Number(dto.mrp) || 0;
+    const salePrice = Number(dto.salePrice) || 0;
+    const discount = dto.discount ?? (mrp > 0 ? Math.round(((mrp - salePrice) / mrp) * 100) : 0);
 
     const product = await this.prisma.product.create({
       data: {
-        name: dto.name,
+        name,
         slug,
-        description: dto.description,
-        mrp: dto.mrp,
-        salePrice: dto.salePrice,
+        description: dto.description?.trim() || '',
+        mrp,
+        salePrice,
         discount,
-        sku: dto.sku,
-        stock: dto.stock,
-        isFeatured: dto.isFeatured,
-        isNewArrival: dto.isNewArrival,
-        isBestSeller: dto.isBestSeller,
-        categoryId: dto.categoryId,
-        seoTitle: dto.seoTitle,
-        seoDescription: dto.seoDescription,
-        tags: dto.tags,
+        sku,
+        stock: Number(dto.stock) || 0,
+        isActive: dto.isActive ?? true,
+        isFeatured: dto.isFeatured ?? false,
+        isNewArrival: dto.isNewArrival ?? false,
+        isBestSeller: dto.isBestSeller ?? false,
+        categoryId,
+        seoTitle: dto.seoTitle?.trim() || undefined,
+        seoDescription: dto.seoDescription?.trim() || undefined,
+        tags: dto.tags?.trim() || undefined,
         images: dto.images
           ? {
               create: dto.images.map((img, idx) => ({
@@ -210,9 +225,9 @@ export class ProductsService {
                 size: v.size,
                 color: v.color,
                 colorCode: v.colorCode,
-                stock: v.stock,
+                stock: Number(v.stock) || 0,
                 sku: v.sku,
-                price: v.price,
+                price: Number(v.price) || 0,
               })),
             }
           : undefined,
@@ -230,6 +245,11 @@ export class ProductsService {
   async update(id: string, dto: UpdateProductDto) {
     const product = await this.prisma.product.findUnique({ where: { id } });
     if (!product) throw new NotFoundException('Product not found');
+
+    if (dto.categoryId) {
+      const category = await this.prisma.category.findUnique({ where: { id: dto.categoryId } });
+      if (!category) throw new BadRequestException('Selected category is invalid');
+    }
 
     const data: any = { ...dto };
 

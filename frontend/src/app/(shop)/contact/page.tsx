@@ -50,8 +50,8 @@ export default function ContactPage() {
             <div className="space-y-6">
               <h2 className="text-2xl font-display font-bold text-gray-900 mb-6">Contact Information</h2>
               {[
-                { icon: MapPin, label: 'Address', value: '123 Fashion Street, Mumbai - 400001' },
-                { icon: Phone, label: 'Phone', value: '+91-9876543210' },
+                { icon: MapPin, label: 'Address', value: 'Shop no 06, Behman Arcade, opp. Bilal Hospital, Kausa, Mumbra, Thane, Maharashtra 400612' },
+                { icon: Phone, label: 'Phone', value: '+91-7977885020' },
                 { icon: Mail, label: 'Email', value: 'bhojanikomail@gmail.com' },
                 { icon: Clock, label: 'Working Hours', value: 'Mon - Sat: 10:00 AM - 7:00 PM' },
               ].map((item, idx) => {

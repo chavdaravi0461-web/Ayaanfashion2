@@ -26,7 +26,7 @@ export default function PrivacyPage() {
           <h2>6. Your Rights</h2>
           <p>You have the right to access, correct, or delete your personal information at any time. You can also opt out of marketing communications by contacting us.</p>
           <h2>7. Contact Us</h2>
-          <p>If you have any questions about this Privacy Policy, please contact us at hello@ayaanfashion.com.</p>
+          <p>If you have any questions about this Privacy Policy, please contact us at komailbhojani@gmail.com.</p>
         </div>
       </div>
       <Footer />

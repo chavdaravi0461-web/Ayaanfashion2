@@ -1,12 +1,18 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { EmailService } from '../email/email.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { OrderStatus, Prisma } from '@prisma/client';
 
 @Injectable()
 export class OrdersService {
-  constructor(private prisma: PrismaService) {}
+  private readonly logger = new Logger(OrdersService.name);
+
+  constructor(
+    private prisma: PrismaService,
+    private emailService: EmailService,
+  ) {}
 
   private async generateOrderNumber(): Promise<string> {
     const date = new Date();
@@ -171,6 +177,10 @@ export class OrdersService {
       });
     }
 
+    this.sendOrderConfirmationEmail(order, dto).catch(err => {
+      this.logger.error(`Failed to send confirmation email for order ${order.orderNumber}: ${err.message}`);
+    });
+
     return order;
   }
 
@@ -280,5 +290,39 @@ export class OrdersService {
         revenue: Number(r.revenue) || 0,
       })),
     };
+  }
+
+  private async sendOrderConfirmationEmail(order: any, dto: CreateOrderDto): Promise<void> {
+    try {
+      await this.emailService.sendOrderConfirmation({
+        orderNumber: order.orderNumber,
+        customerName: dto.customerName,
+        customerEmail: dto.customerEmail,
+        customerPhone: dto.customerPhone,
+        shippingAddress: dto.shippingAddress,
+        city: dto.city,
+        state: dto.state,
+        pincode: dto.pincode,
+        items: dto.items.map(item => ({
+          name: item.name,
+          size: item.size,
+          color: item.color,
+          price: Number(item.price),
+          quantity: item.quantity,
+          total: Number(item.total),
+          imageUrl: item.imageUrl,
+        })),
+        subtotal: Number(dto.subtotal),
+        shippingCost: Number(dto.shippingCost || 0),
+        tax: Number(dto.tax || 0),
+        discount: Number(dto.discount || 0),
+        total: Number(dto.total),
+        paymentMethod: dto.paymentMethod || 'cod',
+        notes: dto.notes,
+      });
+      this.logger.log(`Order confirmation email sent successfully for order ${order.orderNumber}`);
+    } catch (error) {
+      this.logger.error(`Failed to send order confirmation email: ${error.message}`);
+    }
   }
 }

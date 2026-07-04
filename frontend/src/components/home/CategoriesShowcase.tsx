@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { api } from '@/lib/api';
@@ -8,17 +8,46 @@ import { getImageUrl } from '@/lib/utils';
 
 export function CategoriesShowcase() {
   const [categories, setCategories] = useState<any[]>([]);
+  const [shouldLoad, setShouldLoad] = useState(false);
+  const sectionRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
-    api.getCategories().then((res: any) => {
-      if (res.success) setCategories(res.data);
-    }).catch(() => {});
+    if (!shouldLoad) return;
+
+    const loadCategories = async () => {
+      try {
+        const res = await api.getCategories();
+        if (res.success) setCategories(res.data);
+      } catch {
+        // Ignore category fetch failures.
+      }
+    };
+
+    loadCategories();
+  }, [shouldLoad]);
+
+  useEffect(() => {
+    const node = sectionRef.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setShouldLoad(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '200px 0px' }
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
   }, []);
 
   if (categories.length === 0) return null;
 
   return (
-    <section className="py-16 lg:py-24 bg-gray-50">
+    <section ref={sectionRef} className="py-16 lg:py-24 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4">
         <div className="text-center mb-10">
           <h2 className="text-3xl lg:text-4xl font-display font-bold text-gray-900">Shop by Category</h2>

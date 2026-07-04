@@ -4,6 +4,7 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiBearerAuth, ApiConsumes, ApiBody } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { UploadsService } from './uploads.service';
@@ -17,7 +18,16 @@ export class UploadsController {
   constructor(private uploadsService: UploadsService) {}
 
   @Post()
-  @UseInterceptors(FileInterceptor('file'))
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @UseInterceptors(FileInterceptor('file', {
+    limits: { fileSize: 5 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+      if (!file.mimetype.match(/^image\/(jpeg|jpg|png|gif|webp|avif)$/)) {
+        return cb(new BadRequestException('Only image files are allowed'), false);
+      }
+      cb(null, true);
+    },
+  }))
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
@@ -31,7 +41,16 @@ export class UploadsController {
   }
 
   @Post('multiple')
-  @UseInterceptors(FilesInterceptor('files', 10))
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @UseInterceptors(FilesInterceptor('files', 10, {
+    limits: { fileSize: 5 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+      if (!file.mimetype.match(/^image\/(jpeg|jpg|png|gif|webp|avif)$/)) {
+        return cb(new BadRequestException('Only image files are allowed'), false);
+      }
+      cb(null, true);
+    },
+  }))
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {

@@ -39,7 +39,7 @@ async function main() {
     { key: 'site_description', value: 'Premium shoes and watches — curated for style and performance' },
     { key: 'site_email', value: 'bhojanikomail@gmail.com' },
     { key: 'site_phone', value: '+91-9876543210' },
-    { key: 'site_address', value: '123 Fashion Street, Mumbai - 400001' },
+    { key: 'site_address', value: 'Shop no 06, Behman Arcade, opp. Bilal Hospital, Kausa, Mumbra, Thane, Maharashtra 400612' },
     { key: 'shipping_cost', value: '50' },
     { key: 'free_shipping_min', value: '999' },
     { key: 'tax_percentage', value: '5' },

@@ -4,14 +4,16 @@ import { PassportModule } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { TwoFactorModule } from '../two-factor/two-factor.module';
 
 @Module({
   imports: [
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
       secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: process.env.JWT_EXPIRATION || '7d' },
+      signOptions: { expiresIn: process.env.JWT_EXPIRATION || '24h' },
     }),
+    TwoFactorModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],

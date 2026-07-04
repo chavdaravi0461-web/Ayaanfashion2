@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { ProductCard } from '@/components/product/ProductCard';
 import { api } from '@/lib/api';
@@ -10,15 +10,46 @@ import { ArrowRight } from 'lucide-react';
 export function FeaturedProducts() {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [shouldLoad, setShouldLoad] = useState(false);
+  const sectionRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
-    api.getFeaturedProducts().then((res: any) => {
-      if (res.success) setProducts(res.data);
-    }).catch(() => {}).finally(() => setLoading(false));
+    if (!shouldLoad) return;
+
+    const loadProducts = async () => {
+      try {
+        const res = await api.getFeaturedProducts();
+        if (res.success) setProducts(res.data);
+      } catch {
+        // Ignore fetch failures so the section remains usable.
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProducts();
+  }, [shouldLoad]);
+
+  useEffect(() => {
+    const node = sectionRef.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setShouldLoad(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '200px 0px' }
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
   }, []);
 
   return (
-    <section className="py-16 lg:py-24">
+    <section ref={sectionRef} className="py-16 lg:py-24">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between mb-10">
           <div>

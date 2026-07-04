@@ -56,12 +56,48 @@
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    -webkit-text-size-adjust: 100%;
+    -moz-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  img, video {
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
+  input, textarea, select {
+    font-size: 16px !important;
   }
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+  .gpu-accelerate {
+    will-change: transform;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+  .contain-layout {
+    contain: layout style;
+  }
+  .contain-paint {
+    contain: paint;
+  }
+  .security-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
 }
 
@@ -74,6 +110,12 @@
   height: 40px !important;
   border-radius: 50%;
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.swiper-button-next:hover,
+.swiper-button-prev:hover {
+  transform: scale(1.05);
 }
 
 .swiper-button-next::after,
@@ -114,4 +156,45 @@
   background-size: 200px 100%;
   animation: shimmer 1.5s infinite;
   border-radius: 4px;
+}
+
+/* Performance: Reduced motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* GPU acceleration for animations */
+.animate-fade-in,
+.animate-slide-up,
+.animate-slide-down,
+.animate-scale-in {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+/* Selection styling */
+::selection {
+  background-color: rgba(196, 113, 42, 0.2);
+  color: inherit;
+}
+
+/* Security: Prevent user select on sensitive elements */
+.no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Performance: Content visibility for below-the-fold content */
+.content-visibility-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 500px;
 }
