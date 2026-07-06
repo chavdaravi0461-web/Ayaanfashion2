@@ -15,6 +15,7 @@ async function bootstrap() {
     logger: process.env.NODE_ENV === 'production'
       ? ['error', 'warn', 'log']
       : ['error', 'warn', 'log', 'debug', 'verbose'],
+    bufferLogs: process.env.NODE_ENV === 'production',
   });
 
   app.setGlobalPrefix('api');
@@ -33,7 +34,7 @@ async function bootstrap() {
     ...(process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',') : []),
   ].filter(Boolean);
 
-  const uniqueOrigins = [...new Set(allowedOrigins)];
+  const uniqueOrigins: string[] = [...new Set(allowedOrigins as string[])];
 
   app.enableCors({
     origin: (origin, callback) => {
@@ -61,10 +62,26 @@ async function bootstrap() {
     hidePoweredBy: true,
     frameguard: { action: 'deny' },
     permittedCrossDomainPolicies: { permittedPolicies: 'none' },
-    contentSecurityPolicy: false,
+    contentSecurityPolicy: {
+      useDefaults: false,
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+        styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+        fontSrc: ["'self'", 'https://fonts.gstatic.com', 'data:'],
+        imgSrc: ["'self'", 'data:', 'https:', 'blob:'],
+        connectSrc: ["'self'", ...uniqueOrigins.filter((o): o is string => typeof o === 'string' && o.startsWith('http'))],
+        frameSrc: ["'none'"],
+        objectSrc: ["'none'"],
+        baseUri: ["'self'"],
+        formAction: ["'self'"],
+        ...(process.env.NODE_ENV === 'production' ? { upgradeInsecureRequests: [] } : {}),
+      },
+    },
   }));
 
   app.use((req: Request, res: Response, next: NextFunction) => {
+    const start = Date.now();
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('X-XSS-Protection', '1; mode=block');
@@ -75,7 +92,17 @@ async function bootstrap() {
     res.setHeader('X-DNS-Prefetch-Control', 'on');
     res.setHeader('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
     res.setHeader('X-Permitted-Cross-Domain-Policies', 'none');
-    res.setHeader('Surrogate-Control', 'no-store');
+
+    const originalEnd = res.end;
+    res.end = function (...args: any[]) {
+      const duration = Date.now() - start;
+      res.setHeader('X-Response-Time', `${duration}ms`);
+      if (duration > 1000) {
+        console.warn(`Slow request: ${req.method} ${req.originalUrl} - ${duration}ms`);
+      }
+      return originalEnd.apply(res, args);
+    };
+
     next();
   });
 
@@ -84,7 +111,6 @@ async function bootstrap() {
     threshold: 256,
     filter: (req, res) => {
       if (req.headers['x-no-compression']) return false;
-      if (req.headers['accept-encoding'] && !req.headers['accept-encoding'].includes('gzip') && !req.headers['accept-encoding'].includes('deflate')) return false;
       return compression.filter(req, res);
     },
   }));
@@ -95,7 +121,7 @@ async function bootstrap() {
     immutable: true,
     etag: true,
     lastModified: true,
-    setHeaders: (res) => {
+    setHeaders: (res, path) => {
       res.setHeader('X-Content-Type-Options', 'nosniff');
       res.setHeader('Cache-Control', 'public, max-age=2592000, immutable');
     },

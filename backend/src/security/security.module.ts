@@ -1,4 +1,4 @@
-import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
+import { Module, MiddlewareConsumer, NestModule, RequestMethod } from '@nestjs/common';
 import { CsrfMiddleware } from '../common/middleware/csrf.middleware';
 import { SecurityMonitorMiddleware } from '../common/middleware/security-monitor.middleware';
 import { InputSanitizationMiddleware } from '../common/middleware/input-sanitization.middleware';
@@ -15,14 +15,22 @@ export class SecurityModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(SecurityMonitorMiddleware)
-      .forRoutes('*');
-
-    consumer
-      .apply(InputSanitizationMiddleware)
+      .exclude(
+        { path: '/uploads/(.*)', method: RequestMethod.GET },
+        { path: '/_next/(.*)', method: RequestMethod.GET },
+        { path: '/images/(.*)', method: RequestMethod.GET },
+      )
       .forRoutes('*');
 
     consumer
       .apply(RateLimitMiddleware)
+      .forRoutes('*');
+
+    consumer
+      .apply(InputSanitizationMiddleware)
+      .exclude(
+        { path: '/uploads/(.*)', method: RequestMethod.ALL },
+      )
       .forRoutes('*');
 
     consumer

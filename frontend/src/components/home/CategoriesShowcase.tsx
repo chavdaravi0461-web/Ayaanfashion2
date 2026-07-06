@@ -1,81 +1,38 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { api } from '@/lib/api';
 import { getImageUrl } from '@/lib/utils';
 
-export function CategoriesShowcase() {
-  const [categories, setCategories] = useState<any[]>([]);
-  const [shouldLoad, setShouldLoad] = useState(false);
-  const sectionRef = useRef<HTMLElement | null>(null);
+interface CategoriesShowcaseProps {
+  initialCategories?: any[];
+}
 
-  useEffect(() => {
-    if (!shouldLoad) return;
-
-    const loadCategories = async () => {
-      try {
-        const res = await api.getCategories();
-        if (res.success) setCategories(res.data);
-      } catch {
-        // Ignore category fetch failures.
-      }
-    };
-
-    loadCategories();
-  }, [shouldLoad]);
-
-  useEffect(() => {
-    const node = sectionRef.current;
-    if (!node) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting) {
-          setShouldLoad(true);
-          observer.disconnect();
-        }
-      },
-      { rootMargin: '200px 0px' }
-    );
-
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, []);
-
-  if (categories.length === 0) return null;
+export function CategoriesShowcase({ initialCategories = [] }: CategoriesShowcaseProps) {
+  if (initialCategories.length === 0) return null;
 
   return (
-    <section ref={sectionRef} className="py-16 lg:py-24 bg-gray-50">
+    <section className="py-16 lg:py-24 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4">
         <div className="text-center mb-10">
           <h2 className="text-3xl lg:text-4xl font-display font-bold text-gray-900">Shop by Category</h2>
           <p className="text-gray-500 mt-2">Find exactly what you need</p>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          {categories.map((cat, idx) => (
-            <motion.div
+          {initialCategories.map((cat) => (
+            <Link
               key={cat.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: idx * 0.1 }}
+              href={`/shop?category=${cat.slug}`}
+              className="group block bg-white rounded-2xl p-6 text-center hover:shadow-lg transition-all duration-300"
             >
-              <Link
-                href={`/shop?category=${cat.slug}`}
-                className="group block bg-white rounded-2xl p-6 text-center hover:shadow-lg transition-all duration-300"
-              >
-                <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-primary-50 flex items-center justify-center group-hover:bg-primary-100 transition-colors">
-                  {cat.image ? (
-                    <img src={getImageUrl(cat.image)} alt={cat.name} className="w-12 h-12 object-contain" />
-                  ) : (
-                    <span className="text-2xl font-display font-bold text-primary-600">{cat.name[0]}</span>
-                  )}
-                </div>
-                <h3 className="font-medium text-gray-900 group-hover:text-primary-600 transition-colors">{cat.name}</h3>
-              </Link>
-            </motion.div>
+              <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-primary-50 flex items-center justify-center group-hover:bg-primary-100 transition-colors">
+                {cat.image ? (
+                  <img src={getImageUrl(cat.image)} alt={cat.name} className="w-12 h-12 object-contain" loading="lazy" />
+                ) : (
+                  <span className="text-2xl font-display font-bold text-primary-600">{cat.name[0]}</span>
+                )}
+              </div>
+              <h3 className="font-medium text-gray-900 group-hover:text-primary-600 transition-colors">{cat.name}</h3>
+            </Link>
           ))}
         </div>
       </div>

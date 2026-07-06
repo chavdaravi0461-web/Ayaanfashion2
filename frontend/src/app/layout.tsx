@@ -10,6 +10,7 @@ const inter = Inter({
   display: 'swap',
   preload: true,
   adjustFontFallback: true,
+  fallback: ['system-ui', 'sans-serif'],
 });
 
 const playfair = Playfair_Display({
@@ -18,6 +19,7 @@ const playfair = Playfair_Display({
   display: 'swap',
   preload: true,
   adjustFontFallback: true,
+  fallback: ['Georgia', 'serif'],
 });
 
 export const viewport: Viewport = {
@@ -67,11 +69,6 @@ export const metadata: Metadata = {
     apple: '/apple-touch-icon.png',
   },
   other: {
-    'dns-prefetch': [
-      '//fonts.googleapis.com',
-      '//fonts.gstatic.com',
-      '//localhost:4000',
-    ],
     'msapplication-TileColor': '#c4712a',
     'theme-color': '#c4712a',
   },
@@ -84,18 +81,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.googleapis.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="//localhost:4000" />
-        <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style" />
-        <link rel="preload" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" as="style" />
-        <link rel="preconnect" href="//localhost:4000" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="//ayaanfashion.ayaanfashion.workers.dev" />
         <meta httpEquiv="X-Content-Type-Options" content="nosniff" />
         <meta httpEquiv="X-Frame-Options" content="DENY" />
         <meta httpEquiv="X-XSS-Protection" content="1; mode=block" />
         <meta httpEquiv="Strict-Transport-Security" content="max-age=63072000; includeSubDomains; preload" />
         <meta httpEquiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
-        <meta httpEquiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()" />
+        <meta httpEquiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=(), interest-cohort=()" />
         <meta httpEquiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' http://localhost:4000 https://ayaanfashion.ayaanfashion.workers.dev; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self';" />
         <meta name="referrer" content="strict-origin-when-cross-origin" />
         <meta name="format-detection" content="telephone=no" />
+        <link rel="preload" as="image" href="/placeholder.svg" />
       </head>
       <body className="min-h-screen bg-white font-sans antialiased" suppressHydrationWarning>
         <CartProvider>

@@ -16,15 +16,18 @@ export class CsrfMiddleware implements NestMiddleware {
     }
 
     if (this.SAFE_METHODS.includes(req.method)) {
-      const token = crypto.randomBytes(32).toString('hex');
-      res.cookie(this.CSRF_COOKIE, token, {
-        httpOnly: false,
+      const csrfToken = crypto.randomBytes(32).toString('hex');
+      const hmac = crypto.createHmac('sha256', this.CSRF_SECRET).update(csrfToken).digest('hex');
+      const signedToken = `${csrfToken}.${hmac}`;
+
+      res.cookie(this.CSRF_COOKIE, signedToken, {
+        httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
         path: '/',
         maxAge: 3600000,
       });
-      res.setHeader('X-CSRF-Token', token);
+      res.setHeader('X-CSRF-Token', signedToken);
       return next();
     }
 
@@ -33,6 +36,16 @@ export class CsrfMiddleware implements NestMiddleware {
 
     if (!cookieToken || !headerToken || cookieToken !== headerToken) {
       throw new UnauthorizedException('Invalid CSRF token');
+    }
+
+    const [token, hmac] = cookieToken.split('.');
+    if (!token || !hmac) {
+      throw new UnauthorizedException('Invalid CSRF token format');
+    }
+
+    const expectedHmac = crypto.createHmac('sha256', this.CSRF_SECRET).update(token).digest('hex');
+    if (hmac !== expectedHmac) {
+      throw new UnauthorizedException('Invalid CSRF token signature');
     }
 
     next();

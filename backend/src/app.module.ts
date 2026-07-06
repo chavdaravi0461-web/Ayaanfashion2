@@ -29,10 +29,19 @@ import { RolesGuard } from './common/guards/roles.guard';
     ThrottlerModule.forRoot([
       { ttl: 60000, limit: 100 },
       { ttl: 1000, limit: 20 },
+      { ttl: 300000, limit: 300 },
     ]),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads'),
       serveRoot: '/uploads',
+      serveStaticOptions: {
+        maxAge: '30d',
+        immutable: true,
+        etag: true,
+        lastModified: true,
+        dotfiles: 'deny',
+        index: false,
+      },
     }),
     EmailModule,
     SecurityModule,

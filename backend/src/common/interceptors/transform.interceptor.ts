@@ -5,7 +5,6 @@ import { map } from 'rxjs/operators';
 export interface ApiResponse<T> {
   success: boolean;
   data: T;
-  timestamp: string;
 }
 
 @Injectable()
@@ -15,7 +14,6 @@ export class TransformInterceptor<T> implements NestInterceptor<T, ApiResponse<T
       map((data) => ({
         success: true,
         data,
-        timestamp: new Date().toISOString(),
       })),
     );
   }

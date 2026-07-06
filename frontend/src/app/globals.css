@@ -68,6 +68,9 @@
     height: auto;
     display: block;
   }
+  img {
+    content-visibility: auto;
+  }
   input, textarea, select {
     font-size: 16px !important;
   }
@@ -101,7 +104,6 @@
   }
 }
 
-/* Swiper custom styles */
 .swiper-button-next,
 .swiper-button-prev {
   color: #333 !important;
@@ -127,7 +129,6 @@
   background: #c4712a !important;
 }
 
-/* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -145,7 +146,6 @@
   background: #a8a8a8;
 }
 
-/* Skeleton loading animation */
 @keyframes shimmer {
   0% { background-position: -200px 0; }
   100% { background-position: calc(200px + 100%) 0; }
@@ -158,7 +158,6 @@
   border-radius: 4px;
 }
 
-/* Performance: Reduced motion for accessibility */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -170,7 +169,6 @@
   }
 }
 
-/* GPU acceleration for animations */
 .animate-fade-in,
 .animate-slide-up,
 .animate-slide-down,
@@ -179,13 +177,11 @@
   backface-visibility: hidden;
 }
 
-/* Selection styling */
 ::selection {
   background-color: rgba(196, 113, 42, 0.2);
   color: inherit;
 }
 
-/* Security: Prevent user select on sensitive elements */
 .no-select {
   -webkit-user-select: none;
   -moz-user-select: none;
@@ -193,8 +189,23 @@
   user-select: none;
 }
 
-/* Performance: Content visibility for below-the-fold content */
 .content-visibility-auto {
   content-visibility: auto;
   contain-intrinsic-size: 0 500px;
+}
+
+@font-face {
+  font-family: 'Fallback-Inter';
+  src: local('Arial');
+  ascent-override: 90%;
+  descent-override: 22%;
+  size-adjust: 102%;
+}
+
+@font-face {
+  font-family: 'Fallback-Playfair';
+  src: local('Georgia');
+  ascent-override: 95%;
+  descent-override: 25%;
+  size-adjust: 100%;
 }

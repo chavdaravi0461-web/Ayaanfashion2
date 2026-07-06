@@ -4,6 +4,7 @@ interface FetchOptions extends RequestInit {
   params?: Record<string, any>;
   skipCache?: boolean;
   signal?: AbortSignal;
+  priority?: 'high' | 'low' | 'auto';
 }
 
 class ApiClient {
@@ -14,6 +15,7 @@ class ApiClient {
     static: 5 * 60 * 1000,
     dynamic: 30 * 1000,
   };
+  private abortControllers = new Map<string, AbortController>();
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
@@ -37,8 +39,14 @@ class ApiClient {
     return this.CACHE_TTL.dynamic;
   }
 
+  private cancelDuplicateRequests(url: string): void {
+    const existing = this.abortControllers.get(url);
+    if (existing) existing.abort();
+    this.abortControllers.delete(url);
+  }
+
   private async request<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
-    const { params, skipCache, signal, ...fetchOptions } = options;
+    const { params, skipCache, signal, priority, ...fetchOptions } = options;
     let url = `${this.baseUrl}${endpoint}`;
 
     if (params) {
@@ -80,6 +88,12 @@ class ApiClient {
 
     if (fetchOptions.body instanceof FormData) {
       delete headers['Content-Type'];
+    }
+
+    if (priority === 'high') {
+      headers['Priority'] = 'u=1, i';
+    } else if (priority === 'low') {
+      headers['Priority'] = 'u=5, i';
     }
 
     const requestPromise = (async () => {
@@ -145,8 +159,8 @@ class ApiClient {
     return requestPromise as Promise<T>;
   }
 
-  get<T>(endpoint: string, params?: Record<string, any>, skipCache?: boolean) {
-    return this.request<T>(endpoint, { method: 'GET', params, skipCache });
+  get<T>(endpoint: string, params?: Record<string, any>, skipCache?: boolean, priority?: 'high' | 'low' | 'auto') {
+    return this.request<T>(endpoint, { method: 'GET', params, skipCache, priority });
   }
 
   post<T>(endpoint: string, body?: any) {
@@ -177,7 +191,6 @@ class ApiClient {
     }
   }
 
-  // Auth
   login(email: string, password: string) {
     return this.post<{ success: boolean; data: { access_token: string; admin: any } }>('/auth/login', { email, password });
   }
@@ -186,7 +199,6 @@ class ApiClient {
     return this.get<{ success: boolean; data: any }>('/auth/profile');
   }
 
-  // Products
   getProducts(params?: Record<string, any>) {
     return this.get<{ success: boolean; data: { items: any[]; total: number; page: number; limit: number; totalPages: number } }>('/products', params);
   }
@@ -196,7 +208,7 @@ class ApiClient {
   }
 
   getFeaturedProducts() {
-    return this.get<{ success: boolean; data: any[] }>('/products/featured');
+    return this.get<{ success: boolean; data: any[] }>('/products/featured', undefined, false, 'high');
   }
 
   getNewArrivals() {
@@ -223,9 +235,8 @@ class ApiClient {
     return this.delete<{ success: boolean }>(`/products/${id}`);
   }
 
-  // Categories
   getCategories() {
-    return this.get<{ success: boolean; data: any[] }>('/categories');
+    return this.get<{ success: boolean; data: any[] }>('/categories', undefined, false, 'high');
   }
 
   getCategory(slug: string) {
@@ -244,7 +255,6 @@ class ApiClient {
     return this.delete<{ success: boolean }>(`/categories/${id}`);
   }
 
-  // Orders
   getOrders(params?: Record<string, any>) {
     return this.get<{ success: boolean; data: { items: any[]; total: number; page: number; limit: number; totalPages: number } }>('/orders', params);
   }
@@ -269,7 +279,6 @@ class ApiClient {
     return this.get<{ success: boolean; data: any }>('/orders/stats/dashboard');
   }
 
-  // Coupons
   getCoupons() {
     return this.get<{ success: boolean; data: any[] }>('/coupons');
   }
@@ -290,9 +299,8 @@ class ApiClient {
     return this.delete<{ success: boolean }>(`/coupons/${id}`);
   }
 
-  // Banners
   getBanners() {
-    return this.get<{ success: boolean; data: any[] }>('/banners');
+    return this.get<{ success: boolean; data: any[] }>('/banners', undefined, false, 'high');
   }
 
   createBanner(data: FormData | any) {
@@ -307,7 +315,6 @@ class ApiClient {
     return this.delete<{ success: boolean }>(`/banners/${id}`);
   }
 
-  // Customers
   getCustomers(params?: Record<string, any>) {
     return this.get<{ success: boolean; data: { items: any[]; total: number; page: number; limit: number; totalPages: number } }>('/customers', params);
   }
@@ -320,7 +327,6 @@ class ApiClient {
     return this.get<{ success: boolean; data: any[] }>(`/customers/${id}/orders`);
   }
 
-  // Settings
   getSettings() {
     return this.get<{ success: boolean; data: any[] | Record<string, string> }>('/settings');
   }
@@ -329,7 +335,6 @@ class ApiClient {
     return this.put<{ success: boolean; data: any }>('/settings', data);
   }
 
-  // Uploads
   uploadFile(file: File) {
     const formData = new FormData();
     formData.append('file', file);
@@ -342,7 +347,6 @@ class ApiClient {
     return this.post<{ success: boolean; data: { files: { url: string }[] } }>('/uploads/multiple', formData);
   }
 
-  // Customer Profile
   getCustomerProfile() {
     return this.get<{ success: boolean; data: any }>('/auth/customer/profile');
   }
@@ -351,7 +355,6 @@ class ApiClient {
     return this.put<{ success: boolean; data: any }>('/auth/customer/profile', data);
   }
 
-  // Addresses
   getAddresses() {
     return this.get<{ success: boolean; data: any[] }>('/addresses');
   }
@@ -376,7 +379,6 @@ class ApiClient {
     return this.put<{ success: boolean; data: any }>(`/addresses/${id}/default`);
   }
 
-  // Wishlist
   getWishlist() {
     return this.get<{ success: boolean; data: any[] }>('/wishlist');
   }
@@ -393,7 +395,6 @@ class ApiClient {
     return this.post<{ success: boolean; data: { added: boolean } }>(`/wishlist/${productId}/toggle`);
   }
 
-  // Reviews
   createReview(productId: string, data: { rating: number; comment?: string }) {
     return this.post<{ success: boolean; data: any }>(`/products/${productId}/reviews`, data);
   }
@@ -402,12 +403,10 @@ class ApiClient {
     return this.get<{ success: boolean; data: any }>(`/products/${productId}/reviews`);
   }
 
-  // Customer Orders
   getMyOrders(customerId: string) {
     return this.get<{ success: boolean; data: any[] }>(`/orders/customer/${customerId}`);
   }
 
-  // Auth - Customer
   customerLogin(email: string, password: string) {
     return this.post<{ success: boolean; data: { access_token: string; customer: any } }>('/auth/customer/login', { email, password });
   }

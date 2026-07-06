@@ -1,54 +1,16 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
 import { Clock } from 'lucide-react';
 import { ProductCard } from '@/components/product/ProductCard';
-import { api } from '@/lib/api';
-import { ProductCardSkeleton } from '@/components/ui/skeleton';
 
-export function FlashSale() {
-  const [products, setProducts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+interface FlashSaleProps {
+  initialProducts?: any[];
+}
+
+export function FlashSale({ initialProducts = [] }: FlashSaleProps) {
   const [timeLeft, setTimeLeft] = useState({ hours: 23, minutes: 59, seconds: 59 });
-  const [shouldLoad, setShouldLoad] = useState(false);
-  const sectionRef = useRef<HTMLElement | null>(null);
-
-  useEffect(() => {
-    if (!shouldLoad) return;
-
-    const loadProducts = async () => {
-      try {
-        const res = await api.getProducts({ sort: 'salePrice', limit: 4 });
-        if (res.success) setProducts(res.data.items);
-      } catch {
-        // Ignore flash-sale fetch failures.
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadProducts();
-  }, [shouldLoad]);
-
-  useEffect(() => {
-    const node = sectionRef.current;
-    if (!node) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting) {
-          setShouldLoad(true);
-          observer.disconnect();
-        }
-      },
-      { rootMargin: '200px 0px' }
-    );
-
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -63,7 +25,7 @@ export function FlashSale() {
   }, []);
 
   return (
-    <section ref={sectionRef} className="py-16 lg:py-24">
+    <section className="py-16 lg:py-24">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-10">
           <div>
@@ -85,10 +47,9 @@ export function FlashSale() {
           </div>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6">
-          {loading
-            ? Array.from({ length: 4 }).map((_, i) => <ProductCardSkeleton key={i} />)
-            : products.map((product) => <ProductCard key={product.id} product={product} />)
-          }
+          {initialProducts.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
         </div>
       </div>
     </section>

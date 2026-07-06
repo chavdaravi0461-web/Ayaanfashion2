@@ -1,55 +1,16 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { ProductCard } from '@/components/product/ProductCard';
-import { api } from '@/lib/api';
-import { ProductCardSkeleton } from '@/components/ui/skeleton';
 import { ArrowRight } from 'lucide-react';
 
-export function FeaturedProducts() {
-  const [products, setProducts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [shouldLoad, setShouldLoad] = useState(false);
-  const sectionRef = useRef<HTMLElement | null>(null);
+interface FeaturedProductsProps {
+  initialProducts?: any[];
+}
 
-  useEffect(() => {
-    if (!shouldLoad) return;
-
-    const loadProducts = async () => {
-      try {
-        const res = await api.getFeaturedProducts();
-        if (res.success) setProducts(res.data);
-      } catch {
-        // Ignore fetch failures so the section remains usable.
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadProducts();
-  }, [shouldLoad]);
-
-  useEffect(() => {
-    const node = sectionRef.current;
-    if (!node) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting) {
-          setShouldLoad(true);
-          observer.disconnect();
-        }
-      },
-      { rootMargin: '200px 0px' }
-    );
-
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, []);
-
+export function FeaturedProducts({ initialProducts = [] }: FeaturedProductsProps) {
   return (
-    <section ref={sectionRef} className="py-16 lg:py-24">
+    <section className="py-16 lg:py-24">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between mb-10">
           <div>
@@ -61,12 +22,9 @@ export function FeaturedProducts() {
           </Link>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
-          {loading
-            ? Array.from({ length: 4 }).map((_, i) => <ProductCardSkeleton key={i} />)
-            : products.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))
-          }
+          {initialProducts.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
         </div>
         <div className="text-center mt-8 sm:hidden">
           <Link href="/shop" className="inline-flex items-center gap-2 text-primary-600 font-medium">

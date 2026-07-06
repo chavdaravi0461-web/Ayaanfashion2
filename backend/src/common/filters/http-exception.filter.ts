@@ -22,18 +22,13 @@ export class AllExceptionsFilter implements ExceptionFilter {
       success: false,
       statusCode: status,
       message: typeof message === 'string' ? message : message.message || message.error,
-      timestamp: new Date().toISOString(),
       path: request.url,
       method: request.method,
     };
 
-    if (process.env.NODE_ENV !== 'production') {
-      errorResponse.stack = exception instanceof Error ? exception.stack : null;
-    }
-
     this.logger.error(
       JSON.stringify({
-        timestamp: errorResponse.timestamp,
+        timestamp: new Date().toISOString(),
         path: request.url,
         method: request.method,
         statusCode: status,
@@ -41,7 +36,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
         ip: request.ip,
         userAgent: request.get('user-agent'),
       }),
-      exception instanceof Error ? exception.stack : undefined,
     );
 
     response.status(status).json(errorResponse);

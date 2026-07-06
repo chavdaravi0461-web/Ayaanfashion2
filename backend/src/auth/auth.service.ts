@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, ConflictException, Logger } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException, BadRequestException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../prisma/prisma.service';
@@ -19,6 +19,24 @@ export class AuthService {
     private jwtService: JwtService,
     private twoFactorService: TwoFactorService,
   ) {}
+
+  private validatePasswordStrength(password: string): void {
+    if (password.length < 8) {
+      throw new BadRequestException('Password must be at least 8 characters long');
+    }
+    if (!/[A-Z]/.test(password)) {
+      throw new BadRequestException('Password must contain at least one uppercase letter');
+    }
+    if (!/[a-z]/.test(password)) {
+      throw new BadRequestException('Password must contain at least one lowercase letter');
+    }
+    if (!/[0-9]/.test(password)) {
+      throw new BadRequestException('Password must contain at least one number');
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>_\-]/.test(password)) {
+      throw new BadRequestException('Password must contain at least one special character');
+    }
+  }
 
   private checkLockout(key: string): void {
     const attempt = this.loginAttempts.get(key);
@@ -78,6 +96,7 @@ export class AuthService {
   }
 
   async register(dto: RegisterDto) {
+    this.validatePasswordStrength(dto.password);
     const exists = await this.prisma.admin.findUnique({ where: { email: dto.email } });
     if (exists) throw new ConflictException('Email already exists');
     const hashed = await bcrypt.hash(dto.password, 12);
@@ -117,6 +136,7 @@ export class AuthService {
   }
 
   async customerRegister(data: { name: string; email: string; password: string; phone?: string }) {
+    this.validatePasswordStrength(data.password);
     const exists = await this.prisma.customer.findUnique({ where: { email: data.email } });
     if (exists) throw new ConflictException('Email already registered');
     const hashed = await bcrypt.hash(data.password, 12);
@@ -162,7 +182,8 @@ export class AuthService {
   private generateToken(admin: any) {
     const payload = { sub: admin.id, email: admin.email, type: 'admin' };
     return {
-      access_token: this.jwtService.sign(payload),
+      access_token: this.jwtService.sign(payload, { expiresIn: '24h' }),
+      refresh_token: this.jwtService.sign(payload, { expiresIn: '30d' }),
       admin: { id: admin.id, name: admin.name, email: admin.email, role: admin.role },
     };
   }

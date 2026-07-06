@@ -1,15 +1,30 @@
 /** @type {import('next').NextConfig} */
+const csp = `
+  default-src 'self';
+  script-src 'self' 'unsafe-inline' 'unsafe-eval';
+  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+  font-src 'self' https://fonts.gstatic.com data:;
+  img-src 'self' data: https: blob:;
+  connect-src 'self' http://localhost:4000 https://ayaanfashion.ayaanfashion.workers.dev;
+  frame-src 'none';
+  object-src 'none';
+  base-uri 'self';
+  form-action 'self';
+`;
+
 const nextConfig = {
   output: 'standalone',
   reactStrictMode: true,
   compress: true,
   poweredByHeader: false,
   generateEtags: true,
+  productionBrowserSourceMaps: false,
   images: {
     remotePatterns: [
       { protocol: 'http', hostname: 'localhost', port: '4000' },
       { protocol: 'http', hostname: 'localhost', port: '3000' },
       { protocol: 'https', hostname: '**.workers.dev' },
+      { protocol: 'https', hostname: '**.cloudfront.net' },
     ],
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 60 * 60 * 24 * 60,
@@ -18,8 +33,10 @@ const nextConfig = {
   },
   experimental: {
     serverActions: { bodySizeLimit: '5mb' },
-    optimizePackageImports: ['lucide-react', 'framer-motion', 'recharts', 'swiper'],
+    optimizePackageImports: ['lucide-react', 'framer-motion', 'recharts', 'swiper', 'react-hot-toast', 'react-hook-form'],
     scrollRestoration: true,
+    optimizeCss: false,
+    webVitalsAttribution: ['CLS', 'LCP', 'FCP', 'FID', 'TTFB'],
   },
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
@@ -33,13 +50,14 @@ const nextConfig = {
           { key: 'X-Frame-Options', value: 'DENY' },
           { key: 'X-XSS-Protection', value: '1; mode=block' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=(), interest-cohort=()' },
           { key: 'X-DNS-Prefetch-Control', value: 'on' },
           { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
           { key: 'X-Permitted-Cross-Domain-Policies', value: 'none' },
           { key: 'Cross-Origin-Embedder-Policy', value: 'unsafe-none' },
           { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
           { key: 'Cross-Origin-Resource-Policy', value: 'same-origin' },
+          { key: 'Content-Security-Policy', value: csp.replace(/\s{2,}/g, ' ').trim() },
         ],
       },
       {
@@ -78,7 +96,7 @@ const nextConfig = {
         ],
       },
       {
-        source: '/:path*.(svg|png|jpg|jpeg|gif|ico|woff|woff2|ttf|eot)',
+        source: '/:path*.(svg|png|jpg|jpeg|gif|ico|woff|woff2|ttf|eot|css|js)',
         headers: [
           { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
         ],
