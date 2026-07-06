@@ -6,6 +6,8 @@ export class ImageDto {
   @ApiProperty() @IsString() url: string;
   @ApiProperty({ required: false }) @IsOptional() @IsBoolean() isPrimary?: boolean;
   @ApiProperty({ required: false }) @IsOptional() @IsString() alt?: string;
+  @ApiProperty({ required: false }) @IsOptional() @IsString() color?: string;
+  @ApiProperty({ required: false }) @IsOptional() @IsString() colorCode?: string;
 }
 
 export class VariantDto {

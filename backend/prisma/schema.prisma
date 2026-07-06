@@ -111,6 +111,8 @@ model ProductImage {
   id        String  @id @default(uuid())
   url       String
   alt       String?
+  color     String?
+  colorCode String?
   isPrimary Boolean @default(false)
   sortOrder Int     @default(0)
   productId String
@@ -119,6 +121,7 @@ model ProductImage {
 
   @@index([productId])
   @@index([isPrimary])
+  @@index([color])
 }
 
 model ProductVariant {

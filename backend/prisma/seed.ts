@@ -63,7 +63,22 @@ async function main() {
     if (created) catMap[cat.slug] = created.id;
   }
 
-  const products = [
+  type SeedProduct = {
+    name: string;
+    slug: string;
+    description: string;
+    mrp: number;
+    salePrice: number;
+    sku: string;
+    stock: number;
+    categorySlug: string;
+    isFeatured?: boolean;
+    isNewArrival?: boolean;
+    isBestSeller?: boolean;
+    variants?: { color: string; colorCode: string; stock: number }[];
+  };
+
+  const products: SeedProduct[] = [
     {
       name: 'Nike Air Max 270',
       slug: 'nike-air-max-270',
@@ -148,6 +163,75 @@ async function main() {
       mrp: 24995, salePrice: 17995, sku: 'WT-FS-001', stock: 12,
       categorySlug: 'smart-watches', isNewArrival: true,
     },
+    {
+      name: 'Emporio Armani Chronograph Steel Watch',
+      slug: 'emporio-armani-chronograph-steel',
+      description: 'Premium Emporio Armani chronograph with stainless steel bracelet and dual sub-dials. Features a sophisticated dial design with date display, rose gold or silver accents, and a classic round case. Perfect for both formal and casual occasions. Comes with original Emporio Armani packaging.',
+      mrp: 6990, salePrice: 1590, sku: 'WT-EA-CH-001', stock: 30,
+      categorySlug: 'luxury-watches', isFeatured: true, isBestSeller: true,
+      variants: [
+        { color: 'White Dial / Rose Gold', colorCode: '#F5F5F5', stock: 6 },
+        { color: 'White Dial / Silver', colorCode: '#FFFFFF', stock: 6 },
+        { color: 'Blue Dial / Silver', colorCode: '#1E3A5F', stock: 6 },
+        { color: 'Blue Dial / Rose Gold', colorCode: '#1E3A5F', stock: 6 },
+        { color: 'Grey Dial / Rose Gold', colorCode: '#808080', stock: 6 },
+      ],
+    },
+    {
+      name: 'Armani Exchange A|X Octagonal Watch',
+      slug: 'armani-exchange-ax-octagonal',
+      description: 'Bold Armani Exchange octagonal case watch with stainless steel bracelet. Features the iconic A|X logo on the dial, day-date display, and a distinctive multi-sided bezel. Available in 5 stunning dial colors. A statement piece for the modern gentleman.',
+      mrp: 7490, salePrice: 1590, sku: 'WT-AX-OC-001', stock: 30,
+      categorySlug: 'luxury-watches', isFeatured: true, isNewArrival: true,
+      variants: [
+        { color: 'Blue Dial / Silver', colorCode: '#1E3A5F', stock: 6 },
+        { color: 'Grey Dial / Gold', colorCode: '#808080', stock: 6 },
+        { color: 'White Dial / Silver', colorCode: '#FFFFFF', stock: 6 },
+        { color: 'Green Dial / Silver', colorCode: '#228B22', stock: 6 },
+        { color: 'Mint Blue Dial / Silver', colorCode: '#98FF98', stock: 6 },
+      ],
+    },
+    {
+      name: 'Montblanc Time Walker Chronograph',
+      slug: 'montblanc-timewalker-chronograph',
+      description: 'Luxury Montblanc Time Walker chronograph with Swiss-made precision. Features a distinctive bi-compax dial layout, date window, and premium leather or steel bracelet options. Available in Blue, Black, and White dial variants with Rose Gold or Silver finishes. Comes in authentic Montblanc presentation box.',
+      mrp: 7990, salePrice: 1590, sku: 'WT-MB-TW-001', stock: 20,
+      categorySlug: 'luxury-watches', isFeatured: true,
+      variants: [
+        { color: 'Blue Dial / Steel', colorCode: '#1E3A5F', stock: 5 },
+        { color: 'Blue Dial / Rose Gold', colorCode: '#1E3A5F', stock: 5 },
+        { color: 'Black Dial / Black', colorCode: '#000000', stock: 5 },
+        { color: 'White Dial / Rose Gold', colorCode: '#FFFFFF', stock: 5 },
+      ],
+    },
+    {
+      name: 'Armani Leather Belt Watch Collection',
+      slug: 'armani-leather-belt-watch',
+      description: 'Elegant Armani watch with premium leather strap and chronograph dial. Features a sophisticated design with multiple sub-dials, gold or silver case, and genuine leather belt in Brown, Black, and Tan shades. Perfect for office wear and special occasions.',
+      mrp: 5990, salePrice: 1590, sku: 'WT-AL-LB-001', stock: 25,
+      categorySlug: 'casual-watches', isBestSeller: true,
+      variants: [
+        { color: 'Brown Leather / Gold', colorCode: '#8B4513', stock: 5 },
+        { color: 'Dark Brown Leather / Gold', colorCode: '#654321', stock: 5 },
+        { color: 'Black Leather / Gold', colorCode: '#000000', stock: 5 },
+        { color: 'Black Leather / Silver', colorCode: '#000000', stock: 5 },
+        { color: 'Tan Leather / Silver', colorCode: '#D2B48C', stock: 5 },
+      ],
+    },
+    {
+      name: 'Fossil Chronograph Leather Watch',
+      slug: 'fossil-chronograph-leather',
+      description: 'Classic Fossil chronograph with genuine leather strap and three sub-dial design. Features Roman numeral indices, date display, and a sleek round case. Available in Black, Green, and Blue dials with Brown, Black leather straps and Silver or Gold cases. A timeless accessory for every man.',
+      mrp: 6490, salePrice: 1590, sku: 'WT-FO-CL-001', stock: 25,
+      categorySlug: 'casual-watches', isNewArrival: true,
+      variants: [
+        { color: 'Black Dial / Black Leather / Black Case', colorCode: '#000000', stock: 5 },
+        { color: 'Black Dial / Brown Leather / Gold Case', colorCode: '#000000', stock: 5 },
+        { color: 'Green Dial / Brown Leather / Silver Case', colorCode: '#228B22', stock: 5 },
+        { color: 'Blue Dial / Brown Leather / Silver Case', colorCode: '#1E3A5F', stock: 5 },
+        { color: 'Black Dial / Black Leather / Silver Case', colorCode: '#000000', stock: 5 },
+      ],
+    },
   ];
 
   for (const p of products) {
@@ -155,7 +239,7 @@ async function main() {
     if (!categoryId) continue;
     const existing = await prisma.product.findUnique({ where: { slug: p.slug } });
     if (!existing) {
-      await prisma.product.create({
+      const created = await prisma.product.create({
         data: {
           name: p.name,
           slug: p.slug,
@@ -172,6 +256,17 @@ async function main() {
           isBestSeller: p.isBestSeller || false,
         },
       });
+      if (p.variants && p.variants.length > 0) {
+        await prisma.productVariant.createMany({
+          data: p.variants.map((v, i) => ({
+            productId: created.id,
+            color: v.color,
+            colorCode: v.colorCode,
+            stock: v.stock,
+            sku: `${p.sku}-V${i + 1}`,
+          })),
+        });
+      }
     }
   }
 

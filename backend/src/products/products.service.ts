@@ -241,7 +241,7 @@ export class ProductsService {
         seoTitle: dto.seoTitle?.trim() || undefined,
         seoDescription: dto.seoDescription?.trim() || undefined,
         tags: dto.tags?.trim() || undefined,
-        images: dto.images ? { create: dto.images.map((img, idx) => ({ url: img.url, alt: img.alt, isPrimary: img.isPrimary || idx === 0, sortOrder: idx })) } : undefined,
+        images: dto.images ? { create: dto.images.map((img, idx) => ({ url: img.url, alt: img.alt, color: img.color, colorCode: img.colorCode, isPrimary: img.isPrimary || idx === 0, sortOrder: idx })) } : undefined,
         variants: dto.variants ? { create: dto.variants.map(v => ({ size: v.size, color: v.color, colorCode: v.colorCode, stock: Number(v.stock) || 0, sku: v.sku, price: Number(v.price) || 0 })) } : undefined,
       },
       include: { images: { orderBy: { sortOrder: 'asc' } }, variants: true, category: true },
@@ -277,7 +277,7 @@ export class ProductsService {
 
     if (dto.images) {
       await this.prisma.productImage.deleteMany({ where: { productId: id } });
-      data.images = { create: dto.images.map((img, idx) => ({ url: img.url, alt: img.alt, isPrimary: img.isPrimary || idx === 0, sortOrder: idx })) };
+      data.images = { create: dto.images.map((img, idx) => ({ url: img.url, alt: img.alt, color: img.color, colorCode: img.colorCode, isPrimary: img.isPrimary || idx === 0, sortOrder: idx })) };
     }
 
     if (dto.variants) {
