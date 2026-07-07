@@ -31,7 +31,7 @@ export function ProductCard({ product, variant = 'default' }: ProductCardProps) 
       price: Number(product.salePrice),
       mrp: Number(product.mrp),
       quantity: 1,
-      image: getImageUrl(primaryImage),
+      image: imgUrl,
       stock: product.stock,
     });
     toast.success('Added to cart');
