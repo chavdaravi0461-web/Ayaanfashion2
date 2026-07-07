@@ -11,7 +11,7 @@ import { useCart } from '@/lib/store';
 import { EmptyState } from '@/components/ui/empty-state';
 import { formatPrice, generateOrderNumber } from '@/lib/utils';
 import { api } from '@/lib/api';
-import { ShoppingBag, CreditCard, ShieldCheck, ArrowLeft } from 'lucide-react';
+import { ShoppingBag, CreditCard, ShieldCheck, ArrowLeft, Lock, Truck, RotateCcw } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 
@@ -174,7 +174,25 @@ export default function CheckoutPage() {
                   <CreditCard className="w-4 h-4 mr-2" />
                   Place Order - {formatPrice(total)}
                 </Button>
-                <p className="text-xs text-gray-400 text-center mt-3">Your order will be confirmed after placement</p>
+                {/* Trust Badges */}
+                <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">
+                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <Lock className="w-3.5 h-3.5 text-green-600" />
+                    <span>Secure checkout — your data is encrypted</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <Truck className="w-3.5 h-3.5 text-green-600" />
+                    <span>Free shipping on orders above ₹999</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <RotateCcw className="w-3.5 h-3.5 text-green-600" />
+                    <span>7-day easy returns on all products</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <ShieldCheck className="w-3.5 h-3.5 text-green-600" />
+                    <span>100% authentic products guaranteed</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

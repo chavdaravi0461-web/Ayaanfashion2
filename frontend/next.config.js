@@ -4,8 +4,8 @@ const csp = `
   script-src 'self' 'unsafe-inline' 'unsafe-eval';
   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
   font-src 'self' https://fonts.gstatic.com data:;
-  img-src 'self' data: https: blob: https://picsum.photos;
-  connect-src 'self' http://localhost:4000 https://ayaanfashion.ayaanfashion.workers.dev https://ayaanfashion2.onrender.com;
+  img-src 'self' data: https: blob: https://picsum.photos https://*.instagram.com https://*.fbcdn.net;
+  connect-src 'self' http://localhost:4000 https://ayaanfashion.ayaanfashion.workers.dev https://ayaanfashion2.onrender.com https://www.google-analytics.com https://*.ingest.sentry.io;
   frame-src 'none';
   object-src 'none';
   base-uri 'self';

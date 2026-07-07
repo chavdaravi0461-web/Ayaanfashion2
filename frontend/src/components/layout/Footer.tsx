@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Mail, Phone, MapPin, Globe, MessageCircle, Play, ArrowRight } from 'lucide-react';
+import { Mail, Phone, MapPin, Globe, MessageCircle, Play, ArrowRight, ShieldCheck, Truck, RotateCcw, Lock } from 'lucide-react';
 import { api } from '@/lib/api';
 
 export function Footer() {
   const [email, setEmail] = useState('');
+  const [newsletterLoading, setNewsletterLoading] = useState(false);
+  const [newsletterMessage, setNewsletterMessage] = useState('');
   const [categories, setCategories] = useState<any[]>([]);
 
   useEffect(() => {
@@ -15,11 +17,20 @@ export function Footer() {
     }).catch(() => {});
   }, []);
 
-  const handleNewsletter = (e: React.FormEvent) => {
+  const handleNewsletter = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email) {
-      alert('Thank you for subscribing!');
+    if (!email) return;
+    setNewsletterLoading(true);
+    setNewsletterMessage('');
+    try {
+      await api.post('/newsletter/subscribe', { email });
+      setNewsletterMessage('Thank you for subscribing!');
       setEmail('');
+    } catch {
+      setNewsletterMessage('Something went wrong. Please try again.');
+    } finally {
+      setNewsletterLoading(false);
+      setTimeout(() => setNewsletterMessage(''), 4000);
     }
   };
 
@@ -31,21 +42,31 @@ export function Footer() {
           <div className="max-w-xl mx-auto text-center">
             <h3 className="text-2xl font-display font-bold text-white mb-2">Join Our Newsletter</h3>
             <p className="text-gray-400 mb-6">Subscribe to get special offers, free giveaways, and exclusive deals.</p>
-            <form onSubmit={handleNewsletter} className="flex gap-2">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                required
-                className="flex-1 px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
-              />
-              <button
-                type="submit"
-                className="px-6 py-3 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors"
-              >
-                <ArrowRight className="w-5 h-5" />
-              </button>
+            <form onSubmit={handleNewsletter} className="flex flex-col gap-2">
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email"
+                  required
+                  className="flex-1 px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                />
+                <button
+                  type="submit"
+                  disabled={newsletterLoading}
+                  className="px-6 py-3 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {newsletterLoading ? (
+                    <span className="w-5 h-5 block border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <ArrowRight className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
+              {newsletterMessage && (
+                <p className="text-sm text-green-400">{newsletterMessage}</p>
+              )}
             </form>
           </div>
         </div>
@@ -62,15 +83,36 @@ export function Footer() {
               Discover footwear and timepieces that define you.
             </p>
             <div className="flex gap-3">
-              <a href="#" className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-primary-600 transition-colors" aria-label="Instagram">
+              <a href="https://www.instagram.com/ayaanfashion" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-primary-600 transition-colors" aria-label="Instagram">
                 <Globe className="w-4 h-4" />
               </a>
-              <a href="#" className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-primary-600 transition-colors" aria-label="Facebook">
+              <a href="https://www.facebook.com/ayaanfashion" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-primary-600 transition-colors" aria-label="Facebook">
                 <MessageCircle className="w-4 h-4" />
               </a>
-              <a href="#" className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-primary-600 transition-colors" aria-label="YouTube">
+              <a href="https://www.youtube.com/@ayaanfashion" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-primary-600 transition-colors" aria-label="YouTube">
                 <Play className="w-4 h-4" />
               </a>
+            </div>
+            {/* Trust Badges */}
+            <div className="mt-6 p-3 bg-gray-800/50 rounded-lg">
+              <div className="grid grid-cols-2 gap-2 text-center">
+                <div className="flex items-center gap-2 justify-center">
+                  <Lock className="w-3.5 h-3.5 text-green-400" />
+                  <span className="text-xs text-gray-400">Secure SSL</span>
+                </div>
+                <div className="flex items-center gap-2 justify-center">
+                  <ShieldCheck className="w-3.5 h-3.5 text-green-400" />
+                  <span className="text-xs text-gray-400">100% Authentic</span>
+                </div>
+                <div className="flex items-center gap-2 justify-center">
+                  <Truck className="w-3.5 h-3.5 text-green-400" />
+                  <span className="text-xs text-gray-400">Free Shipping</span>
+                </div>
+                <div className="flex items-center gap-2 justify-center">
+                  <RotateCcw className="w-3.5 h-3.5 text-green-400" />
+                  <span className="text-xs text-gray-400">7-Day Returns</span>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -82,6 +124,7 @@ export function Footer() {
                 { href: '/shop', label: 'Shop All' },
                 { href: '/new-arrivals', label: 'New Arrivals' },
                 { href: '/best-sellers', label: 'Best Sellers' },
+                { href: '/faq', label: 'FAQ' },
                 { href: '/about', label: 'About Us' },
                 { href: '/contact', label: 'Contact' },
                 { href: '/order-tracking', label: 'Track Order' },
@@ -134,9 +177,11 @@ export function Footer() {
           <p className="text-sm text-gray-500">
             &copy; {new Date().getFullYear()} Ayaan Footwear &amp; Watches. All rights reserved.
           </p>
-          <div className="flex gap-6 text-sm">
+          <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
             <Link href="/privacy" className="text-gray-500 hover:text-gray-300">Privacy Policy</Link>
             <Link href="/terms" className="text-gray-500 hover:text-gray-300">Terms of Service</Link>
+            <Link href="/refund" className="text-gray-500 hover:text-gray-300">Refund Policy</Link>
+            <Link href="/shipping" className="text-gray-500 hover:text-gray-300">Shipping Policy</Link>
           </div>
         </div>
       </div>

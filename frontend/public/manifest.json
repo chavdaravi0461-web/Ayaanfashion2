@@ -1,0 +1,14 @@
+{
+  "name": "Ayaan Footwear & Watches",
+  "short_name": "Ayaan F&W",
+  "description": "Premium shoes and watches curated for style and performance.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#c4712a",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "/favicon.ico", "sizes": "48x48", "type": "image/x-icon" },
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}
