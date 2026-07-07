@@ -37,6 +37,8 @@ interface GalleryImage {
   file?: File;
   preview?: string;
   isPrimary: boolean;
+  color?: string;
+  colorCode?: string;
 }
 
 interface ProductForm {
@@ -200,6 +202,8 @@ export default function AdminProductsPage() {
         id: `existing-${i}`,
         url: img.url,
         isPrimary: img.isPrimary || i === 0,
+        color: img.color || '',
+        colorCode: img.colorCode || '',
       }))
     );
     setVariants(
@@ -297,11 +301,168 @@ export default function AdminProductsPage() {
     );
   };
 
+  const hexToColorName = (hex: string): string => {
+    const colors: Record<string, string> = {
+      '#FF0000': 'Red', '#CC0000': 'Dark Red', '#990000': 'Maroon', '#800000': 'Wine',
+      '#FF4500': 'Orange Red', '#FF6600': 'Orange', '#FF8C00': 'Dark Orange',
+      '#FFD700': 'Gold', '#FFFF00': 'Yellow', '#FFFFE0': 'Light Yellow',
+      '#00FF00': 'Lime', '#32CD32': 'Green', '#228B22': 'Forest Green',
+      '#008000': 'Dark Green', '#006400': 'Deep Green', '#98FB98': 'Pale Green',
+      '#00FF7F': 'Spring Green', '#7CFC00': 'Lawn Green',
+      '#00FFFF': 'Cyan', '#00CED1': 'Teal', '#20B2AA': 'Sea Green',
+      '#008080': 'Dark Cyan', '#008B8B': 'Teal Blue',
+      '#0000FF': 'Blue', '#0000CD': 'Medium Blue', '#00008B': 'Dark Blue',
+      '#191970': 'Midnight Blue', '#4169E1': 'Royal Blue', '#6495ED': 'Sky Blue',
+      '#87CEEB': 'Light Blue', '#B0E0E6': 'Powder Blue', '#1E90FF': 'Dodger Blue',
+      '#00BFFF': 'Deep Sky Blue', '#48D1CC': 'Turquoise', '#40E0D0': 'Turquoise',
+      '#8A2BE2': 'Purple', '#9400D3': 'Dark Violet', '#9932CC': 'Dark Orchid',
+      '#BA55D3': 'Medium Orchid', '#800080': 'Violet', '#9370DB': 'Medium Purple',
+      '#7B68EE': 'Medium Slate Blue', '#6A5ACD': 'Slate Blue',
+      '#FF00FF': 'Magenta', '#FF1493': 'Deep Pink', '#FF69B4': 'Hot Pink',
+      '#FFB6C1': 'Light Pink', '#FFC0CB': 'Pink', '#DB7093': 'Pale Violet Red',
+      '#C71585': 'Medium Violet Red', '#E91E63': 'Pink Red',
+      '#A52A2A': 'Brown', '#8B4513': 'Saddle Brown', '#D2691E': 'Chocolate',
+      '#CD853F': 'Peru', '#DEB887': 'Burlywood', '#D2B48C': 'Tan',
+      '#BC8F8F': 'Rosy Brown', '#F5DEB3': 'Wheat', '#FFE4B5': 'Moccasin',
+      '#FFDAB9': 'Peach', '#FAEBD7': 'Antique White', '#FFF8DC': 'Cornsilk',
+      '#FFFFFF': 'White', '#F5F5F5': 'White Smoke', '#DCDCDC': 'Gainsboro',
+      '#D3D3D3': 'Light Gray', '#C0C0C0': 'Silver', '#A9A9A9': 'Dark Gray',
+      '#808080': 'Gray', '#696969': 'Dim Gray', '#4B4B4B': 'Charcoal',
+      '#333333': 'Dark Charcoal', '#1A1A1A': 'Near Black', '#000000': 'Black',
+      '#F0F8FF': 'Alice Blue', '#FAF0E6': 'Linen', '#FFF5EE': 'Seashell',
+      '#F5FFFA': 'Mint Cream', '#FFF0F5': 'Lavender Blush', '#E6E6FA': 'Lavender',
+      '#FDF5E6': 'Old Lace', '#FFEFD5': 'Papaya Whip', '#FAFAFA': 'Off White',
+      '#2F4F4F': 'Dark Slate Gray', '#778899': 'Light Slate Gray',
+      '#B8860B': 'Dark Goldenrod', '#DAA520': 'Goldenrod', '#EEE8AA': 'Pale Goldenrod',
+      '#98FF98': 'Mint', '#AFEEEE': 'Pale Turquoise',
+    };
+    const upper = hex.toUpperCase();
+    return colors[upper] || colors[hex] || hex;
+  };
+
+  const colorNameToHex = (name: string): string => {
+    const map: Record<string, string> = {
+      red: '#FF0000', 'dark red': '#CC0000', maroon: '#800000', wine: '#800000',
+      'orange red': '#FF4500', orange: '#FF6600', 'dark orange': '#FF8C00',
+      gold: '#FFD700', yellow: '#FFFF00', 'light yellow': '#FFFFE0',
+      lime: '#00FF00', green: '#32CD32', 'forest green': '#228B22',
+      'dark green': '#006400', 'pale green': '#98FB98', mint: '#98FF98',
+      cyan: '#00FFFF', teal: '#008080', 'sea green': '#20B2AA',
+      blue: '#0000FF', 'dark blue': '#00008B', 'midnight blue': '#191970',
+      'royal blue': '#4169E1', 'sky blue': '#87CEEB', 'light blue': '#ADD8E6',
+      'dodger blue': '#1E90FF', turquoise: '#40E0D0',
+      purple: '#800080', violet: '#9370DB', lavender: '#E6E6FA',
+      magenta: '#FF00FF', 'deep pink': '#FF1493', 'hot pink': '#FF69B4',
+      pink: '#FFC0CB', 'light pink': '#FFB6C1', 'rose gold': '#B76E79',
+      brown: '#8B4513', 'saddle brown': '#8B4513', chocolate: '#D2691E',
+      tan: '#D2B48C', beige: '#F5F5DC', cream: '#FFFDD0',
+      white: '#FFFFFF', 'off white': '#FAFAFA', ivory: '#FFFFF0',
+      'light gray': '#D3D3D3', silver: '#C0C0C0', gray: '#808080',
+      'dark gray': '#696969', charcoal: '#333333', black: '#000000',
+      coral: '#FF7F50', salmon: '#FA8072', olive: '#808000',
+      copper: '#B87333', bronze: '#CD7F32', champagne: '#F7E7CE',
+      peach: '#FFDAB5', ruby: '#E0115F', emerald: '#50C878',
+      navy: '#191970', 'baby blue': '#B0E0E6', blush: '#FFE4E1',
+    };
+    const key = name.trim().toLowerCase();
+    return map[key] || '';
+  };
+
   const handleVariantChange = (index: number, field: keyof Variant, value: string) => {
     setVariants((prev) =>
-      prev.map((v, i) => (i === index ? { ...v, [field]: value } : v))
+      prev.map((v, i) => {
+        if (i !== index) return v;
+        const updated = { ...v, [field]: value };
+        if (field === 'colorCode' && (!v.color || v.color === hexToColorName(v.colorCode))) {
+          updated.color = hexToColorName(value);
+        }
+        if (field === 'color' && value.trim()) {
+          const hex = colorNameToHex(value);
+          if (hex) updated.colorCode = hex;
+        }
+        return updated;
+      })
     );
   };
+
+  const detectColorFromName = (name: string) => {
+    const nameLower = name.toLowerCase();
+    const colorKeywords: { keyword: string; hex: string }[] = [
+      { keyword: 'rose gold', hex: '#B76E79' },
+      { keyword: 'sky blue', hex: '#87CEEB' },
+      { keyword: 'royal blue', hex: '#4169E1' },
+      { keyword: 'baby blue', hex: '#B0E0E6' },
+      { keyword: 'forest green', hex: '#228B22' },
+      { keyword: 'hot pink', hex: '#FF69B4' },
+      { keyword: 'off white', hex: '#FAFAFA' },
+      { keyword: 'champagne', hex: '#F7E7CE' },
+      { keyword: 'charcoal', hex: '#333333' },
+      { keyword: 'maroon', hex: '#800000' },
+      { keyword: 'orange', hex: '#FF6600' },
+      { keyword: 'yellow', hex: '#FFFF00' },
+      { keyword: 'purple', hex: '#800080' },
+      { keyword: 'violet', hex: '#9370DB' },
+      { keyword: 'lavender', hex: '#E6E6FA' },
+      { keyword: 'turquoise', hex: '#40E0D0' },
+      { keyword: 'emerald', hex: '#50C878' },
+      { keyword: 'chocolate', hex: '#D2691E' },
+      { keyword: 'magenta', hex: '#FF00FF' },
+      { keyword: 'turquoise', hex: '#40E0D0' },
+      { keyword: 'black', hex: '#000000' },
+      { keyword: 'white', hex: '#FFFFFF' },
+      { keyword: 'silver', hex: '#C0C0C0' },
+      { keyword: 'grey', hex: '#808080' },
+      { keyword: 'gray', hex: '#808080' },
+      { keyword: 'red', hex: '#FF0000' },
+      { keyword: 'blue', hex: '#0000FF' },
+      { keyword: 'green', hex: '#32CD32' },
+      { keyword: 'pink', hex: '#FFC0CB' },
+      { keyword: 'brown', hex: '#8B4513' },
+      { keyword: 'gold', hex: '#FFD700' },
+      { keyword: 'navy', hex: '#191970' },
+      { keyword: 'teal', hex: '#008080' },
+      { keyword: 'mint', hex: '#98FF98' },
+      { keyword: 'coral', hex: '#FF7F50' },
+      { keyword: 'peach', hex: '#FFDAB5' },
+      { keyword: 'tan', hex: '#D2B48C' },
+      { keyword: 'beige', hex: '#F5F5DC' },
+      { keyword: 'cream', hex: '#FFFDD0' },
+      { keyword: 'ivory', hex: '#FFFFF0' },
+      { keyword: 'lime', hex: '#00FF00' },
+      { keyword: 'olive', hex: '#808000' },
+      { keyword: 'copper', hex: '#B87333' },
+      { keyword: 'bronze', hex: '#CD7F32' },
+      { keyword: 'rose', hex: '#FF1493' },
+      { keyword: 'wine', hex: '#800000' },
+      { keyword: 'ruby', hex: '#E0115F' },
+      { keyword: 'salmon', hex: '#FA8072' },
+    ];
+    const detected: { color: string; hex: string }[] = [];
+    let remaining = nameLower;
+    for (const ck of colorKeywords) {
+      if (remaining.includes(ck.keyword) && !detected.some(d => d.hex === ck.hex)) {
+        detected.push({ color: hexToColorName(ck.hex) || ck.keyword, hex: ck.hex });
+        remaining = remaining.replace(new RegExp(ck.keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), '');
+      }
+    }
+    return detected;
+  };
+
+  const autoDetectVariants = (name: string) => {
+    if (!name || editingProduct) return;
+    const detected = detectColorFromName(name);
+    if (detected.length > 0) {
+      setVariants(detected.map((d) => ({
+        size: '', color: d.color, colorCode: d.hex, stock: '10', sku: '', price: '',
+      })));
+    }
+  };
+
+  useEffect(() => {
+    if (form.name && !editingProduct && variants.length === 0) {
+      autoDetectVariants(form.name);
+    }
+  }, [form.name]);
 
   const addVariant = () => {
     setVariants((prev) => [
@@ -355,64 +516,46 @@ export default function AdminProductsPage() {
         baseData.slug = generateSlug(form.name);
       }
 
-      if (isCreating) {
-        const res = await api.createProduct(baseData);
-        if (!res.success) throw new Error('Failed to create product');
+      const buildImagesFromGallery = (): { url: string; isPrimary: boolean; color?: string; colorCode?: string }[] => {
+        return galleryImages.map((img, i) => ({ url: img.url || img.preview || '', isPrimary: i === 0, color: img.color, colorCode: img.colorCode }));
+      };
 
+      const uploadNewAndSaveImages = async (productId: string) => {
         const newFiles = galleryImages.filter((img) => img.file).map((img) => img.file!);
-        const existingUrls = galleryImages.filter((img) => img.url).map((img) => img.url!);
-
-        if (newFiles.length > 0) {
-          void (async () => {
-            try {
-              const uploadRes = await api.uploadMultiple(newFiles);
-              if (uploadRes.success) {
-                const uploadedUrls = uploadRes.data.files.map((f: any) => f.url);
-                const allUrls = [...existingUrls, ...uploadedUrls];
-                if (allUrls.length > 0) {
-                  await api.updateProduct(res.data.id, {
-                    images: allUrls.map((url, i) => ({ url, isPrimary: i === 0 })),
-                  });
-                }
-              }
-            } catch (uploadError) {
-              console.error('Image upload failed after product creation:', uploadError);
-            }
-          })();
-        } else if (existingUrls.length > 0) {
-          void (async () => {
-            try {
-              await api.updateProduct(res.data.id, {
-                images: existingUrls.map((url, i) => ({ url, isPrimary: i === 0 })),
-              });
-            } catch (uploadError) {
-              console.error('Image attach failed after product creation:', uploadError);
-            }
-          })();
-        }
-
-        toast.success('Product created successfully', { id: loadingToast });
-      } else {
-        const res = await api.updateProduct(editingProduct.id, baseData);
-        if (!res.success) throw new Error('Failed to update product');
-
-        const newFiles = galleryImages.filter((img) => img.file).map((img) => img.file!);
-        let allUrls = galleryImages.filter((img) => img.url).map((img) => img.url!);
-
         if (newFiles.length > 0) {
           const uploadRes = await api.uploadMultiple(newFiles);
           if (uploadRes.success) {
             const uploadedUrls = uploadRes.data.files.map((f: any) => f.url);
-            allUrls = [...allUrls, ...uploadedUrls];
+            let uploadIdx = 0;
+            const resolved = galleryImages.map((img) => {
+              if (img.url) return { url: img.url, isPrimary: img.isPrimary, color: img.color, colorCode: img.colorCode };
+              if (img.file) {
+                const url = uploadedUrls[uploadIdx++];
+                return { url, isPrimary: img.isPrimary, color: img.color, colorCode: img.colorCode };
+              }
+              return null;
+            }).filter(Boolean);
+            if (resolved.length > 0) {
+              await api.updateProduct(productId, { images: resolved });
+            }
+          }
+        } else {
+          const resolved = buildImagesFromGallery().filter(img => img.url && !img.url.startsWith('blob:'));
+          if (resolved.length > 0) {
+            await api.updateProduct(productId, { images: resolved });
           }
         }
+      };
 
-        if (allUrls.length > 0) {
-          await api.updateProduct(editingProduct.id, {
-            images: allUrls.map((url, i) => ({ url, isPrimary: i === 0 })),
-          });
-        }
-
+      if (isCreating) {
+        const res = await api.createProduct(baseData);
+        if (!res.success) throw new Error('Failed to create product');
+        await uploadNewAndSaveImages(res.data.id);
+        toast.success('Product created successfully', { id: loadingToast });
+      } else {
+        const res = await api.updateProduct(editingProduct.id, baseData);
+        if (!res.success) throw new Error('Failed to update product');
+        await uploadNewAndSaveImages(editingProduct.id);
         toast.success('Product updated successfully', { id: loadingToast });
       }
 
@@ -945,39 +1088,61 @@ export default function AdminProductsPage() {
 
           <section>
             <h4 className="text-sm font-semibold text-gray-900 mb-4 uppercase tracking-wider">Image Gallery</h4>
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 mb-4">
-              {galleryImages.map((img) => (
-                <div key={img.id} className="relative group aspect-square rounded-lg border border-gray-200 bg-gray-50 overflow-hidden">
-                  <img
-                    src={img.preview || getImageUrl(img.url || '')}
-                    alt=""
-                    className="w-full h-full object-cover"
-                  />
-                  {img.isPrimary && (
-                    <div className="absolute top-1 left-1">
-                      <Badge variant="primary" size="sm">
-                        <Star className="w-2.5 h-2.5 mr-0.5 fill-current" /> Primary
-                      </Badge>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-4">
+              {galleryImages.map((img, imgIdx) => (
+                <div key={img.id} className="relative group rounded-lg border border-gray-200 bg-gray-50 overflow-hidden">
+                  <div className="aspect-square">
+                    <img
+                      src={img.preview || getImageUrl(img.url || '')}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
+                    {img.isPrimary && (
+                      <div className="absolute top-1 left-1">
+                        <Badge variant="primary" size="sm">
+                          <Star className="w-2.5 h-2.5 mr-0.5 fill-current" /> Primary
+                        </Badge>
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100">
+                      {!img.isPrimary && (
+                        <button
+                          onClick={() => setPrimaryImage(img.id)}
+                          className="p-1 bg-white rounded-md shadow-sm hover:bg-gray-50 text-gray-600"
+                          title="Set as primary"
+                        >
+                          <Star className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => removeGalleryImage(img.id)}
+                        className="p-1 bg-white rounded-md shadow-sm hover:bg-red-50 text-red-500"
+                        title="Remove"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                  {variants.length > 1 && (
+                    <div className="p-1.5 border-t border-gray-100">
+                      <select
+                        value={img.color || ''}
+                        onChange={(e) => {
+                          const selected = e.target.value;
+                          const variant = variants.find(v => v.color === selected);
+                          setGalleryImages((prev) =>
+                            prev.map((g) => g.id === img.id ? { ...g, color: selected, colorCode: variant?.colorCode || '' } : g)
+                          );
+                        }}
+                        className="w-full text-[10px] px-1 py-1 border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-primary-500 bg-white"
+                      >
+                        <option value="">All Colors</option>
+                        {variants.map((v) => (
+                          <option key={v.color} value={v.color}>{v.color}</option>
+                        ))}
+                      </select>
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100">
-                    {!img.isPrimary && (
-                      <button
-                        onClick={() => setPrimaryImage(img.id)}
-                        className="p-1 bg-white rounded-md shadow-sm hover:bg-gray-50 text-gray-600"
-                        title="Set as primary"
-                      >
-                        <Star className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                    <button
-                      onClick={() => removeGalleryImage(img.id)}
-                      className="p-1 bg-white rounded-md shadow-sm hover:bg-red-50 text-red-500"
-                      title="Remove"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
                 </div>
               ))}
               <label className="aspect-square rounded-lg border-2 border-dashed border-gray-300 bg-gray-50/50 flex flex-col items-center justify-center cursor-pointer hover:border-primary-400 hover:bg-primary-50/30 transition-colors">
@@ -992,6 +1157,9 @@ export default function AdminProductsPage() {
                 />
               </label>
             </div>
+            {variants.length > 1 && (
+              <p className="text-xs text-gray-500">Assign each image to a color variant so customers see the right image when selecting a color.</p>
+            )}
           </section>
 
           <section>
@@ -1048,10 +1216,32 @@ export default function AdminProductsPage() {
                                 placeholder="e.g. M"
                               />
                             </td>
-                            <td className="py-2 pr-2">
+                             <td className="py-2 pr-2">
                               <input
                                 value={v.color}
-                                onChange={(e) => handleVariantChange(i, 'color', e.target.value)}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  const hexLkp: Record<string, string> = {
+                                    red:'#FF0000',maroon:'#800000',wine:'#800000',orange:'#FF6600',
+                                    gold:'#FFD700',yellow:'#FFFF00',lime:'#00FF00',green:'#32CD32',
+                                    mint:'#98FF98',teal:'#008080',blue:'#0000FF',navy:'#191970',
+                                    purple:'#800080',violet:'#9370DB',lavender:'#E6E6FA',
+                                    pink:'#FFC0CB',magenta:'#FF00FF',brown:'#8B4513',tan:'#D2B48C',
+                                    beige:'#F5F5DC',white:'#FFFFFF',silver:'#C0C0C0',gray:'#808080',
+                                    grey:'#808080',charcoal:'#333333',black:'#000000',
+                                    coral:'#FF7F50',olive:'#808000',cream:'#FFFDD0',
+                                    'rose gold':'#B76E79',champagne:'#F7E7CE',copper:'#B87333',
+                                    bronze:'#CD7F32',emerald:'#50C878',turquoise:'#40E0D0',
+                                  };
+                                  const found = hexLkp[val.trim().toLowerCase()];
+                                  setVariants((prev) =>
+                                    prev.map((x, idx) =>
+                                      idx === i
+                                        ? { ...x, color: val, colorCode: found || x.colorCode }
+                                        : x
+                                    )
+                                  );
+                                }}
                                 className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary-500"
                                 placeholder="e.g. Red"
                               />
@@ -1061,12 +1251,26 @@ export default function AdminProductsPage() {
                                 <input
                                   type="color"
                                   value={v.colorCode}
-                                  onChange={(e) => handleVariantChange(i, 'colorCode', e.target.value)}
+                                  onChange={(e) => {
+                                    const hex = e.target.value;
+                                    setVariants((prev) =>
+                                      prev.map((x, idx) =>
+                                        idx === i ? { ...x, colorCode: hex } : x
+                                      )
+                                    );
+                                  }}
                                   className="w-8 h-8 rounded border border-gray-300 cursor-pointer"
                                 />
                                 <input
                                   value={v.colorCode}
-                                  onChange={(e) => handleVariantChange(i, 'colorCode', e.target.value)}
+                                  onChange={(e) => {
+                                    const hex = e.target.value;
+                                    setVariants((prev) =>
+                                      prev.map((x, idx) =>
+                                        idx === i ? { ...x, colorCode: hex } : x
+                                      )
+                                    );
+                                  }}
                                   className="w-20 px-2 py-1.5 border border-gray-300 rounded text-sm font-mono focus:outline-none focus:ring-1 focus:ring-primary-500"
                                 />
                               </div>

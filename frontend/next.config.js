@@ -4,8 +4,8 @@ const csp = `
   script-src 'self' 'unsafe-inline' 'unsafe-eval';
   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
   font-src 'self' https://fonts.gstatic.com data:;
-  img-src 'self' data: https: blob:;
-  connect-src 'self' http://localhost:4000 https://ayaanfashion.ayaanfashion.workers.dev;
+  img-src 'self' data: https: blob: https://picsum.photos;
+  connect-src 'self' http://localhost:4000 https://ayaanfashion.ayaanfashion.workers.dev https://ayaanfashion2.onrender.com;
   frame-src 'none';
   object-src 'none';
   base-uri 'self';
@@ -24,6 +24,7 @@ const nextConfig = {
       { protocol: 'http', hostname: 'localhost', port: '4000' },
       { protocol: 'http', hostname: 'localhost', port: '3000' },
       { protocol: 'https', hostname: '**.workers.dev' },
+      { protocol: 'https', hostname: '**.onrender.com' },
       { protocol: 'https', hostname: '**.cloudfront.net' },
     ],
     formats: ['image/avif', 'image/webp'],

@@ -9,6 +9,7 @@ interface FetchOptions extends RequestInit {
 
 class ApiClient {
   private baseUrl: string;
+  private csrfToken: string | null = null;
   private cache = new Map<string, { expiresAt: number; promise: Promise<any> }>();
   private pendingRequests = new Map<string, Promise<any>>();
   private readonly CACHE_TTL = {
@@ -30,6 +31,11 @@ class ApiClient {
   private getToken(): string | null {
     if (typeof window === 'undefined') return null;
     return localStorage.getItem('admin_token') || localStorage.getItem('customer_token');
+  }
+
+  private storeCsrfFromResponse(response: Response): void {
+    const token = response.headers.get('X-CSRF-Token');
+    if (token) this.csrfToken = token;
   }
 
   private getCacheTTL(endpoint: string): number {
@@ -96,10 +102,15 @@ class ApiClient {
       headers['Priority'] = 'u=5, i';
     }
 
+    const unsafeMethods = ['POST', 'PUT', 'PATCH', 'DELETE'];
+    if (unsafeMethods.includes(fetchOptions.method || '') && this.csrfToken) {
+      headers['x-csrf-token'] = this.csrfToken;
+    }
+
     const requestPromise = (async () => {
       let response: Response;
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
 
       try {
         response = await fetch(url, {
@@ -115,6 +126,8 @@ class ApiClient {
       } finally {
         clearTimeout(timeoutId);
       }
+
+      this.storeCsrfFromResponse(response);
 
       if (response.status === 401) {
         this.clearTokens();
@@ -403,8 +416,8 @@ class ApiClient {
     return this.get<{ success: boolean; data: any }>(`/products/${productId}/reviews`);
   }
 
-  getMyOrders(customerId: string) {
-    return this.get<{ success: boolean; data: any[] }>(`/orders/customer/${customerId}`);
+  getMyOrders(_customerId: string) {
+    return this.get<{ success: boolean; data: any[] }>(`/orders/my-orders`);
   }
 
   customerLogin(email: string, password: string) {

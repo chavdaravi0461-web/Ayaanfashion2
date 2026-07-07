@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useState } from 'react';
 import { ShoppingBag, Heart } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn, formatPrice, getImageUrl, calculateDiscount } from '@/lib/utils';
@@ -12,9 +13,12 @@ interface ProductCardProps {
   variant?: 'default' | 'compact';
 }
 
+const FALLBACK = '/placeholder.svg';
+
 export function ProductCard({ product, variant = 'default' }: ProductCardProps) {
   const { addItem } = useCart();
-  const primaryImage = product.images?.find((img: any) => img.isPrimary)?.url || product.images?.[0]?.url || '/placeholder.svg';
+  const imgUrl = getImageUrl(product.images?.find((img: any) => img.isPrimary)?.url || product.images?.[0]?.url || FALLBACK);
+  const [imgSrc, setImgSrc] = useState(imgUrl);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -45,8 +49,9 @@ export function ProductCard({ product, variant = 'default' }: ProductCardProps) 
       <Link href={`/product/${product.slug}`} className="group block">
         <div className="relative bg-gray-50 rounded-xl overflow-hidden mb-3 aspect-square">
           <img
-            src={getImageUrl(primaryImage)}
+            src={imgSrc}
             alt={product.name}
+            onError={() => setImgSrc(FALLBACK)}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             loading="lazy"
           />

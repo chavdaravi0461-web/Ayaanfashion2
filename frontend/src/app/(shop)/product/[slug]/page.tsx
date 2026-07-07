@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, usePathname } from 'next/navigation';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
@@ -11,10 +11,12 @@ import { ImageZoom } from '@/components/ui/image-zoom';
 import { PageLoader } from '@/components/ui/loading';
 import { ErrorState } from '@/components/ui/error-state';
 import { useCart } from '@/lib/store';
-import { formatPrice, getImageUrl, calculateDiscount } from '@/lib/utils';
+import { formatPrice, getImageUrl, calculateDiscount, getColorHex } from '@/lib/utils';
 import { api } from '@/lib/api';
 import { Minus, Plus, ShoppingBag, Heart, Share2, Check, Truck, Shield, RotateCcw } from 'lucide-react';
 import toast from 'react-hot-toast';
+
+const PLACEHOLDER = '/placeholder.svg';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -53,6 +55,10 @@ export default function ProductDetailPage() {
       .finally(() => setLoading(false));
   }, [params.slug]);
 
+  const handleImageError = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
+    e.currentTarget.src = PLACEHOLDER;
+  }, []);
+
   const handleAddToCart = () => {
     if (!product) return;
     const variantId = `${product.id}${selectedSize ? '-' + selectedSize : ''}${selectedColor ? '-' + selectedColor : ''}`;
@@ -64,7 +70,7 @@ export default function ProductDetailPage() {
       price: Number(product.salePrice),
       mrp: Number(product.mrp),
       quantity,
-      image: getImageUrl(product.images?.[selectedImage]?.url || product.images?.[0]?.url || ''),
+      image: getImageUrl(displayImages[selectedImage]?.url || displayImages[0]?.url || ''),
       size: selectedSize,
       color: selectedColor,
       stock: product.stock,
@@ -99,10 +105,25 @@ export default function ProductDetailPage() {
   if (error) return <main><Header /><div className="pt-28"><ErrorState message={error} onRetry={() => window.location.reload()} /></div><Footer /></main>;
   if (!product) return <main><Header /><div className="pt-28"><ErrorState message="Product not found" /></div><Footer /></main>;
 
-  const images = product.images?.length ? product.images : [{ url: '/placeholder.svg', alt: product.name }];
   const sizes = [...new Set(product.variants?.map((v: any) => v.size).filter(Boolean))] as string[];
   const colors = [...new Set(product.variants?.map((v: any) => v.color).filter(Boolean))] as string[];
   const discount = product.discount || calculateDiscount(Number(product.mrp), Number(product.salePrice));
+
+  const allImages = product.images?.length ? product.images : [{ url: '/placeholder.svg', alt: product.name }];
+  const hasColorOnImages = allImages.some((img: any) => img.color);
+  let displayImages = allImages;
+  if (selectedColor) {
+    if (hasColorOnImages) {
+      displayImages = allImages.filter((img: any) => img.color === selectedColor);
+    } else if (colors.length > 0) {
+      const perColor = Math.max(1, Math.floor(allImages.length / colors.length));
+      const colorIdx = colors.indexOf(selectedColor);
+      displayImages = allImages.filter((_: any, i: number) =>
+        Math.floor(i / perColor) === colorIdx
+      );
+    }
+  }
+  if (displayImages.length === 0) displayImages = allImages;
 
   return (
     <main>
@@ -131,22 +152,28 @@ export default function ProductDetailPage() {
             <div className="space-y-4">
               <div className="bg-gray-50 rounded-2xl overflow-hidden aspect-square">
                 <ImageZoom
-                  src={getImageUrl(images[selectedImage]?.url)}
-                  alt={images[selectedImage]?.alt || product.name}
+                  src={getImageUrl(displayImages[selectedImage]?.url)}
+                  alt={displayImages[selectedImage]?.alt || product.name}
                   className="w-full h-full"
                 />
               </div>
-              {images.length > 1 && (
+              {displayImages.length > 1 && (
                 <div className="flex gap-3">
-                  {images.map((img: any, idx: number) => (
+                  {displayImages.map((img: any, idx: number) => (
                     <button
                       key={idx}
                       onClick={() => setSelectedImage(idx)}
-                      className={`w-20 h-20 rounded-xl overflow-hidden border-2 transition-colors ${
+                      className={`relative w-20 h-20 rounded-xl overflow-hidden border-2 transition-colors ${
                         idx === selectedImage ? 'border-primary-600' : 'border-gray-200 hover:border-gray-400'
                       }`}
                     >
-                      <img src={getImageUrl(img.url)} alt={img.alt || ''} className="w-full h-full object-cover" />
+                      <img src={getImageUrl(img.url)} alt={img.alt || ''} onError={handleImageError} className="w-full h-full object-cover" />
+                      {img.colorCode && (
+                        <span
+                          className="absolute bottom-1 right-1 w-3 h-3 rounded-full border border-white shadow-sm"
+                          style={{ backgroundColor: getColorHex(img.colorCode) }}
+                        />
+                      )}
                     </button>
                   ))}
                 </div>
@@ -207,11 +234,11 @@ export default function ProductDetailPage() {
                       return (
                         <button
                           key={color}
-                          onClick={() => setSelectedColor(color)}
+                          onClick={() => { setSelectedColor(color); setSelectedImage(0); }}
                           className={`w-8 h-8 rounded-full border-2 transition-colors ${
                             selectedColor === color ? 'border-primary-600 ring-2 ring-primary-200' : 'border-gray-300'
                           }`}
-                          style={{ backgroundColor: variant?.colorCode || '#ccc' }}
+                          style={{ backgroundColor: getColorHex(variant?.colorCode || variant?.color) }}
                           title={color}
                         />
                       );

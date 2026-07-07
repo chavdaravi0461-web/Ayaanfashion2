@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, UseGuards, Headers } from '@nestjs/common';
+import { Controller, Post, Get, Body, UseGuards, Headers, ForbiddenException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
@@ -47,7 +47,7 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
   customerProfile(@CurrentUser() user: any) {
-    if (user.type !== 'customer') throw new Error('Not a customer');
+    if (user.type !== 'customer') throw new ForbiddenException('Not a customer');
     return this.authService.customerProfile(user.id);
   }
 

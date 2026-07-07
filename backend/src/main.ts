@@ -69,7 +69,7 @@ async function bootstrap() {
         scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
         styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
         fontSrc: ["'self'", 'https://fonts.gstatic.com', 'data:'],
-        imgSrc: ["'self'", 'data:', 'https:', 'blob:'],
+        imgSrc: ["'self'", 'data:', 'https:', 'blob:', 'https://picsum.photos'],
         connectSrc: ["'self'", ...uniqueOrigins.filter((o): o is string => typeof o === 'string' && o.startsWith('http'))],
         frameSrc: ["'none'"],
         objectSrc: ["'none'"],
