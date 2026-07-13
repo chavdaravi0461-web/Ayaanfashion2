@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useParams, usePathname } from 'next/navigation';
+import { useParams, usePathname, useRouter } from 'next/navigation';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
@@ -13,7 +13,7 @@ import { ErrorState } from '@/components/ui/error-state';
 import { useCart } from '@/lib/store';
 import { formatPrice, getImageUrl, calculateDiscount, getColorHex } from '@/lib/utils';
 import { api } from '@/lib/api';
-import { Minus, Plus, ShoppingBag, Heart, Share2, Check, Truck, Shield, RotateCcw } from 'lucide-react';
+import { Minus, Plus, ShoppingBag, Heart, Share2, Check, Truck, Shield, RotateCcw, Zap } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const PLACEHOLDER = '/placeholder.svg';
@@ -21,6 +21,7 @@ const PLACEHOLDER = '/placeholder.svg';
 export default function ProductDetailPage() {
   const params = useParams();
   const pathname = usePathname();
+  const router = useRouter();
   const { addItem } = useCart();
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -76,6 +77,11 @@ export default function ProductDetailPage() {
       stock: product.stock,
     });
     toast.success('Added to cart!');
+  };
+
+  const handleBuyNow = () => {
+    handleAddToCart();
+    router.push('/checkout');
   };
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
@@ -264,10 +270,18 @@ export default function ProductDetailPage() {
                     <Plus className="w-4 h-4" />
                   </button>
                 </div>
-                <Button size="lg" className="flex-1" onClick={handleAddToCart} disabled={product.stock === 0}>
-                  <ShoppingBag className="w-5 h-5 mr-2" />
-                  {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
-                </Button>
+                <div className="flex gap-3 flex-1">
+                  <Button size="lg" className="flex-1" onClick={handleAddToCart} disabled={product.stock === 0}>
+                    <ShoppingBag className="w-5 h-5 mr-2" />
+                    {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+                  </Button>
+                  {product.stock > 0 && (
+                    <Button size="lg" variant="outline" className="flex-1 border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white" onClick={handleBuyNow}>
+                      <Zap className="w-5 h-5 mr-2" />
+                      Buy Now
+                    </Button>
+                  )}
+                </div>
               </div>
 
               {/* Stock Info */}
