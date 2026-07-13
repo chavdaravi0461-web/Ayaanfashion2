@@ -11,14 +11,26 @@ import { useCart } from '@/lib/store';
 import { EmptyState } from '@/components/ui/empty-state';
 import { formatPrice, generateOrderNumber } from '@/lib/utils';
 import { api } from '@/lib/api';
-import { ShoppingBag, CreditCard, ShieldCheck, ArrowLeft, Lock, Truck, RotateCcw } from 'lucide-react';
+import { ShoppingBag, CreditCard, ShieldCheck, ArrowLeft, Lock, Truck, RotateCcw, Wallet, Copy, Check } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+
+const UPI_ID = 'bhojanikomail@gmail.com';
+const UPI_APPS = [
+  { name: 'Google Pay', id: 'gpay', color: 'bg-white border border-gray-300 hover:border-green-400', textColor: 'text-gray-800', icon: 'G' },
+  { name: 'PhonePe', id: 'phonepe', color: 'bg-white border border-gray-300 hover:border-purple-400', textColor: 'text-purple-700', icon: 'P' },
+  { name: 'Paytm', id: 'paytm', color: 'bg-white border border-gray-300 hover:border-blue-400', textColor: 'text-blue-600', icon: 'P' },
+  { name: 'Other UPI', id: 'other', color: 'bg-white border border-gray-300 hover:border-gray-400', textColor: 'text-gray-600', icon: 'U' },
+];
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { state, getSubtotal, getDiscount, getShipping, getTax, getTotal, clearCart } = useCart();
   const [loading, setLoading] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'cod' | 'upi'>('cod');
+  const [selectedUpiApp, setSelectedUpiApp] = useState('gpay');
+  const [transactionId, setTransactionId] = useState('');
+  const [copied, setCopied] = useState(false);
   const [form, setForm] = useState({
     name: '', email: '', phone: '', address: '', city: '', state: '', pincode: '', notes: '',
   });
@@ -28,6 +40,29 @@ export default function CheckoutPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const copyUpiId = () => {
+    navigator.clipboard.writeText(UPI_ID);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+    toast.success('UPI ID copied!');
+  };
+
+  const openUpiApp = (appId: string) => {
+    const upiDeepLink = `upi://pay?pa=${UPI_ID}&pn=Ayaan%20Fashion&am=${total}&cu=INR&tn=Order%20Payment`;
+    if (appId === 'gpay') {
+      window.open(`tez://upi/${UPI_ID}?amount=${total}`, '_blank');
+      setTimeout(() => window.open(upiDeepLink, '_blank'), 300);
+    } else if (appId === 'phonepe') {
+      window.open(`phonepe://pay/${UPI_ID}?amount=${total}`, '_blank');
+      setTimeout(() => window.open(upiDeepLink, '_blank'), 300);
+    } else if (appId === 'paytm') {
+      window.open(`paytm://upi/${UPI_ID}?amount=${total}`, '_blank');
+      setTimeout(() => window.open(upiDeepLink, '_blank'), 300);
+    } else {
+      window.open(upiDeepLink, '_blank');
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -40,9 +75,17 @@ export default function CheckoutPage() {
       toast.error('Your cart is empty');
       return;
     }
+    if (paymentMethod === 'upi' && !transactionId.trim()) {
+      toast.error('Please enter UPI transaction ID after payment');
+      return;
+    }
 
     setLoading(true);
     try {
+      const upiNotes = paymentMethod === 'upi'
+        ? `UPI: ${UPI_ID} | App: ${UPI_APPS.find(a => a.id === selectedUpiApp)?.name || 'UPI'} | TXN: ${transactionId}`
+        : '';
+
       const orderData = {
         customerName: form.name,
         customerEmail: form.email,
@@ -51,13 +94,13 @@ export default function CheckoutPage() {
         city: form.city,
         state: form.state,
         pincode: form.pincode,
-        notes: form.notes || undefined,
+        notes: [form.notes, upiNotes].filter(Boolean).join('\n') || undefined,
         subtotal,
         shippingCost: getShipping(),
         tax: getTax(),
         discount: getDiscount(),
         total,
-        paymentMethod: 'cod',
+        paymentMethod: paymentMethod,
         couponId: state.coupon?.code || undefined,
         items: state.items.map((item) => ({
           productId: item.productId,
@@ -74,7 +117,7 @@ export default function CheckoutPage() {
       const res = await api.createOrder(orderData);
       if (res.success) {
         clearCart();
-        router.push(`/order-success?order=${res.data.orderNumber}`);
+        router.push(`/order-success?order=${res.data.orderNumber}${paymentMethod === 'upi' ? `&txn=${transactionId}` : ''}`);
       }
     } catch (err: any) {
       toast.error(err.message || 'Failed to place order. Please try again.');
@@ -134,16 +177,66 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
+              {/* Payment Method */}
               <div className="bg-white border border-gray-200 rounded-xl p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">Payment Method</h2>
-                <label className="flex items-center gap-3 p-4 border border-green-200 bg-green-50 rounded-lg cursor-pointer">
-                  <input type="radio" name="payment" defaultChecked className="text-primary-600" />
-                  <div>
-                    <p className="font-medium text-gray-900">Cash on Delivery</p>
-                    <p className="text-sm text-gray-500">Pay when you receive your order</p>
+                <div className="space-y-3">
+                  <label className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer transition-all ${paymentMethod === 'cod' ? 'border-green-200 bg-green-50' : 'border-gray-200 hover:bg-gray-50'}`}>
+                    <input type="radio" name="payment" value="cod" checked={paymentMethod === 'cod'} onChange={() => setPaymentMethod('cod')} className="text-primary-600" />
+                    <div>
+                      <p className="font-medium text-gray-900">Cash on Delivery</p>
+                      <p className="text-sm text-gray-500">Pay when you receive your order</p>
+                    </div>
+                    <ShieldCheck className="w-5 h-5 text-green-600 ml-auto" />
+                  </label>
+
+                  <label className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer transition-all ${paymentMethod === 'upi' ? 'border-purple-200 bg-purple-50' : 'border-gray-200 hover:bg-gray-50'}`}>
+                    <input type="radio" name="payment" value="upi" checked={paymentMethod === 'upi'} onChange={() => setPaymentMethod('upi')} className="text-primary-600" />
+                    <div>
+                      <p className="font-medium text-gray-900">Pay Online (UPI)</p>
+                      <p className="text-sm text-gray-500">Google Pay, PhonePe, Paytm & more</p>
+                    </div>
+                    <Wallet className="w-5 h-5 text-purple-600 ml-auto" />
+                  </label>
+                </div>
+
+                {paymentMethod === 'upi' && (
+                  <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200 space-y-4">
+                    <p className="text-sm font-medium text-gray-700">Pay to this UPI ID:</p>
+                    <div className="flex items-center gap-2 bg-white border border-gray-300 rounded-lg px-4 py-3">
+                      <Wallet className="w-5 h-5 text-purple-600 flex-shrink-0" />
+                      <span className="text-base font-mono font-semibold text-gray-900">{UPI_ID}</span>
+                      <button type="button" onClick={copyUpiId} className="ml-auto p-1.5 rounded-lg hover:bg-gray-100 transition-colors" title="Copy UPI ID">
+                        {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4 text-gray-500" />}
+                      </button>
+                    </div>
+
+                    <p className="text-sm font-medium text-gray-700">Choose your UPI app:</p>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {UPI_APPS.map((app) => (
+                        <button
+                          key={app.id}
+                          type="button"
+                          onClick={() => { setSelectedUpiApp(app.id); openUpiApp(app.id); }}
+                          className={`flex flex-col items-center gap-1.5 p-3 rounded-xl text-sm font-medium transition-all ${selectedUpiApp === app.id ? 'ring-2 ring-primary-500 border-primary-500' : ''} ${app.color}`}
+                        >
+                          <span className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${app.textColor} bg-gray-100`}>{app.icon}</span>
+                          <span className="text-xs">{app.name}</span>
+                        </button>
+                      ))}
+                    </div>
+
+                    <div>
+                      <Input
+                        label="UPI Transaction ID (UTR)"
+                        value={transactionId}
+                        onChange={(e) => setTransactionId(e.target.value)}
+                        placeholder="Enter UPI reference/UTR number after payment"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">This helps us verify your payment quickly</p>
+                    </div>
                   </div>
-                  <ShieldCheck className="w-5 h-5 text-green-600 ml-auto" />
-                </label>
+                )}
               </div>
             </div>
 
@@ -172,9 +265,8 @@ export default function CheckoutPage() {
                 </div>
                 <Button type="submit" size="lg" className="w-full mt-6" isLoading={loading}>
                   <CreditCard className="w-4 h-4 mr-2" />
-                  Place Order - {formatPrice(total)}
+                  {paymentMethod === 'upi' ? `Pay ₹${formatPrice(total).replace('₹', '')} Online` : `Place Order - ${formatPrice(total)}`}
                 </Button>
-                {/* Trust Badges */}
                 <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">
                   <div className="flex items-center gap-2 text-xs text-gray-500">
                     <Lock className="w-3.5 h-3.5 text-green-600" />
